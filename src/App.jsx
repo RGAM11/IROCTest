@@ -29,10 +29,10 @@ const HOSPITAL_ROLES = {
     { key:"Resident",    label:"Resident",        icon:"🙃", row:0 },
     { key:"IHRN",        label:"In-House RN",           icon:"🩹", row:1, tint:"#ECF3F8", weekendOnly:true },
     { key:"PrimaryRN",   label:"Primary RN",      icon:"🩹", row:1, tint:"#ECF3F8" },
-    { key:"SecondRN",    label:"2nd RN",           icon:"🩹", row:1, tint:"#ECF3F8" },
+    { key:"SecondRN",    label:"2nd RN",           icon:"🩹", row:1, tint:"#ECF3F8", weekdayLink:"https://ehconnect.eushc.org/", weekdayLinkLabel:"Open EHConnect" },
     { key:"IHTech",      label:"In-House Tech",          icon:"🔧", row:2, tint:"#EEF5F1", weekendOnly:true },
     { key:"PrimaryTech", label:"Primary IR Tech",  icon:"🔧", row:2, tint:"#EEF5F1" },
-    { key:"SecondTech",  label:"2nd IR Tech",       icon:"🔧", row:2, tint:"#EEF5F1" },
+    { key:"SecondTech",  label:"2nd IR Tech",       icon:"🔧", row:2, tint:"#EEF5F1", weekdayLink:"https://ehconnect.eushc.org/", weekdayLinkLabel:"Open EHConnect" },
     { key:"CTTech",      label:"CT Tech",           icon:"🖥️", row:3, static:true, phone:"" },
     { key:"Anesthesia",  label:"Anesthesia",        icon:"💉", row:3, static:true, phone:"404-712-7283", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"EUH_Schedule", label:"Emailed Schedule", icon:"📋", row:4, static:true, phone:"", image:"/euh-schedule.png" },
@@ -61,7 +61,7 @@ const HOSPITAL_ROLES = {
     { key:"OCC",        label:"On Call Coordinator / Nursing Supervisor",  icon:"📞", row:0, static:true, phone:"404-491-5493", note:"OCC will help call in IR Tech & RN as well as anesthesia if needed.\n\nProvide following:\n• Patient name, MRN, location\n• Planned procedure & expected time\n• If anesthesia needed" },
     { key:"POS",        label:"Point of Service",     icon:"📞", row:0, static:true, phone:"404-778-8298", note:"POS will help post your case, inform POS if anesthesia assistance will be needed" },
     { key:"CTTech",     label:"CT Tech",       icon:"🖥️", row:1, static:true, phone:"470-707-5459", phone2:"470-686-2641" },
-    { key:"Anesthesia", label:"Anesthesia",    icon:"💉", row:1, static:true, phone:"470-990-1356", note:"Check EHConnect for on-call anesthesiologist", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
+    { key:"Anesthesia", label:"Anesthesia",    icon:"💉", row:1, static:true, phone:"470-990-1356" },
     { key:"Operator",   label:"EJCH Operator", icon:"📞", row:1, static:true, phone:"678-474-7000" },
   ],
   6: [
@@ -576,6 +576,13 @@ export default function App() {
                   <div style={{ fontSize:"18px", fontWeight:700, color:T.text }}>{todayEntry.name}</div>
                   {todayEntry.phone && <div style={{ fontSize:"15px", fontWeight:600, color:T.text, marginTop:"4px" }}>📞 {todayEntry.phone}</div>}
                   <PhoneButtons phone={todayEntry.phone} clr={hospital.color} />
+                  {activeRole?.weekdayLink && !isWeekendDay && selectedDay !== "Friday" && (
+                    <a href={activeRole.weekdayLink} target="_blank" rel="noopener noreferrer" style={{
+                      display:"inline-flex", alignItems:"center", gap:"5px", marginTop:"8px",
+                      padding:"8px 16px", borderRadius:"8px", textDecoration:"none",
+                      background:`linear-gradient(135deg, #4A6FA0 0%, #2B4A7A 100%)`, color:"#fff", fontWeight:700, fontSize:"12px",
+                    }}>🔗 {activeRole.weekdayLinkLabel || "Open EHConnect"}</a>
+                  )}
                   {todayEntry.name2 && (
                     <div style={{ marginTop:"12px", paddingTop:"10px", borderTop:`1px solid ${T.dayBorder}` }}>
                       <div style={{ fontSize:"15px", fontWeight:600, color:T.text }}>{todayEntry.name2}</div>
@@ -592,6 +599,13 @@ export default function App() {
               <div style={{ color:T.textMuted, fontSize:"13px" }}>
                 {todayEntry?.name === "Weekend Only" ? "Weekend Only — no weekday schedule for this role" : "No one scheduled"}
               </div>
+              {activeRole?.weekdayLink && !isWeekendDay && selectedDay !== "Friday" && (
+                <a href={activeRole.weekdayLink} target="_blank" rel="noopener noreferrer" style={{
+                  display:"inline-flex", alignItems:"center", gap:"5px", marginTop:"10px",
+                  padding:"8px 16px", borderRadius:"8px", textDecoration:"none",
+                  background:`linear-gradient(135deg, #4A6FA0 0%, #2B4A7A 100%)`, color:"#fff", fontWeight:700, fontSize:"12px",
+                }}>🔗 {activeRole.weekdayLinkLabel || "Open EHConnect"}</a>
+              )}
             </div>
           )}
         </div>
