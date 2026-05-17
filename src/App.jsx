@@ -52,7 +52,7 @@ const HOSPITAL_ROLES = {
     { key:"Technologist",label:"IR Tech", icon:"🔧", row:0 },
     { key:"RN",          label:"RN",      icon:"🩹", row:0 },
     { key:"ESJH_CTTech",     label:"CT Tech",          icon:"🖥️", row:1, static:true, phone:"678-843-7093" },
-    { key:"ESJH_Anesthesia", label:"Anesthesia",       icon:"💉", row:1, static:true, phone:"", note:'Please look up the On Call anesthesiologist on EHConnect (listed as "anesthesiology-ESJH-anesthesiologist"). Call the person listed as "1".', link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
+    { key:"ESJH_Anesthesia", label:"Anesthesia",       icon:"💉", row:1, static:true, phone:"", note:'EHConnect → On-Call → Anesthesiology → select "Anesthesiology - ESJH - Anesthesiologist - 1"', link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"ESJH_RadMain",   label:"Radiology Main",    icon:"📞", row:2, static:true, phone:"678-843-7341" },
     { key:"ESJH_ORFront",   label:"OR Front Desk",     icon:"📞", row:2, static:true, phone:"678-843-7360" },
   ],
@@ -354,7 +354,7 @@ export default function App() {
         <div style={{ position:"relative", zIndex:1 }}>
           {/* #7 Watermark behind title */}
           <div style={{ position:"relative" }}>
-            <div style={{ position:"absolute", top:"70%", left:"50%", transform:"translate(-50%,-50%)", width:"55vw", maxWidth:"300px", aspectRatio:"1",
+            <div style={{ position:"absolute", top:"85%", left:"50%", transform:"translate(-50%,-50%)", width:"55vw", maxWidth:"300px", aspectRatio:"1",
               backgroundImage:`url("${CREST_URL}")`, backgroundSize:"contain", backgroundRepeat:"no-repeat", backgroundPosition:"center",
               opacity: dk ? 0.04 : 0.07, pointerEvents:"none", zIndex:0 }} />
             <div style={{ paddingTop:"76px", textAlign:"center", position:"relative", zIndex:1 }}>
@@ -521,6 +521,15 @@ export default function App() {
           </div>
         )}
 
+        {/* ESJH Entry Points */}
+        {selectedHospital === 4 && (
+          <div style={{ marginBottom:"12px", padding:"12px 14px", borderRadius:"12px", background: dk ? "#1E2A3A" : "#FFF8E8", border:`2px solid ${dk ? "#3D5A7A" : "#D4B87A"}` }}>
+            <div style={{ fontSize:"13px", color: dk ? "#D4C090" : "#5A4A20", lineHeight:"1.5" }}>
+              🚪 Entry points after 9pm (Mon-Fri) and on weekends are through the <strong>ED waiting room</strong> and the <strong>Winship Main Entrance</strong>.
+            </div>
+          </div>
+        )}
+
         {/* On-Call Card */}
         <div style={{ marginBottom:"14px" }}>
           <div style={{ fontSize:"13px", fontWeight:700, color:T.text, marginBottom:"6px" }}>
@@ -610,7 +619,7 @@ export default function App() {
           )}
         </div>
 
-        {/* Group Text & Call */}
+        {/* Group Text */}
         {[4,6,7].includes(selectedHospital) && (effectiveRole === "Technologist" || effectiveRole === "RN") && (() => {
           const te = getEntry(selectedHospital, "Technologist", selectedDay);
           const re = getEntry(selectedHospital, "RN", selectedDay);
@@ -618,16 +627,10 @@ export default function App() {
           if (!td && !rd) return null;
           return (
             <div style={{ marginBottom:"14px" }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px" }}>
-                <a href={`sms:${[td,rd].filter(Boolean).join(",")}`} style={{
-                  display:"flex", alignItems:"center", justifyContent:"center", gap:"5px", padding:"12px", borderRadius:"10px", textDecoration:"none",
-                  background:"linear-gradient(135deg, #3DA07A 0%, #2E8A6A 100%)", color:"#fff", fontWeight:700, fontSize:"12px",
-                }}>💬 Group Text</a>
-                <a href={`tel:${td || rd}`} style={{
-                  display:"flex", alignItems:"center", justifyContent:"center", gap:"5px", padding:"12px", borderRadius:"10px", textDecoration:"none",
-                  background:`linear-gradient(135deg, ${hospital.color} 0%, ${hospital.color}CC 100%)`, color:"#fff", fontWeight:700, fontSize:"12px",
-                }}>📞 Group Call</a>
-              </div>
+              <a href={`sms:${[td,rd].filter(Boolean).join(",")}`} style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:"6px", padding:"12px", borderRadius:"10px", textDecoration:"none",
+                background:"linear-gradient(135deg, #3DA07A 0%, #2E8A6A 100%)", color:"#fff", fontWeight:700, fontSize:"13px",
+              }}>💬 Group Text IR Tech & RN</a>
               <div style={{ fontSize:"10px", color:T.textMuted, textAlign:"center", marginTop:"4px" }}>
                 {te?.name && te.name !== "N/A" ? te.name : "Tech"} + {re?.name && re.name !== "N/A" ? re.name : "RN"}
               </div>
