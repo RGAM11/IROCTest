@@ -58,7 +58,7 @@ const HOSPITAL_ROLES = {
   ],
   5: [
     { key:"IR",         label:"IR",            icon:"🩺", row:0 },
-    { key:"OCC",        label:"On Call Coordinator / Nursing Supervisor",  icon:"📞", row:0, static:true, phone:"404-491-5493", note:"OCC will help call in IR Tech & RN as well as anesthesia if needed.\n\nProvide following:\n• Patient name, MRN, location\n• Planned procedure & expected time\n• If anesthesia needed" },
+    { key:"OCC",        label:"On Call Coordinator / Nursing Supervisor",  icon:"📞", row:0, static:true, phone:"404-491-5493", note:"OCC will call in IR Tech & RN.\n\nProvide following:\n• Patient name, MRN, location\n• Planned procedure & expected time\n• If anesthesia needed" },
     { key:"POS",        label:"Point of Service",     icon:"📞", row:0, static:true, phone:"404-778-8298", note:"POS will help post your case, inform POS if anesthesia assistance will be needed" },
     { key:"CTTech",     label:"CT Tech",       icon:"🖥️", row:1, static:true, phone:"470-707-5459", phone2:"470-686-2641" },
     { key:"Anesthesia", label:"Anesthesia",    icon:"💉", row:1, static:true, phone:"470-990-1356" },
