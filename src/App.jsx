@@ -281,6 +281,12 @@ export default function App() {
 
   useEffect(() => { fetchSchedule().then(d => setSchedule(d)).finally(() => setLoading(false)); }, []);
 
+  // Update browser status bar color to match selected hospital
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", hospital ? hospital.color : "#3D7A8F");
+  }, [selectedHospital]);
+
   const weekDates = getWeekDates();
   const todayName = getDayName();
   const hospital = HOSPITALS.find(h => h.id === selectedHospital);
@@ -509,9 +515,9 @@ export default function App() {
 
         {/* EJCH Call Workflow — always visible */}
         {selectedHospital === 5 && (
-          <div style={{ marginBottom:"14px", padding:"16px", borderRadius:"12px", background: dk ? "#1E2A3A" : "#E6EDF8", border:`2px solid ${dk ? "#3D5A7A" : "#8AA0C0"}` }}>
-            <div style={{ fontSize:"15px", fontWeight:800, color: dk ? "#C0D0E0" : "#1B3A5C", marginBottom:"8px" }}>📋 Call Workflow</div>
-            <div style={{ fontSize:"14px", color: dk ? "#B0C0D0" : "#2A3A5A", lineHeight:"1.7", whiteSpace:"pre-line" }}>{"1. Call OCC/RN Supervisor — give appropriate info\n2. Call Anesthesia (if needed)\n3. Enter Procedure order\n\nOn-call team (RN/IR Tech) will post case utilizing P.O.S."}</div>
+          <div style={{ marginBottom:"12px", padding:"12px 14px", borderRadius:"12px", background: dk ? "#1E2A3A" : "#E6EDF8", border:`2px solid ${dk ? "#3D5A7A" : "#8AA0C0"}` }}>
+            <div style={{ fontSize:"14px", fontWeight:800, color: dk ? "#C0D0E0" : "#1B3A5C", marginBottom:"5px" }}>📋 EJCH Call Workflow</div>
+            <div style={{ fontSize:"13px", color: dk ? "#B0C0D0" : "#2A3A5A", lineHeight:"1.5", whiteSpace:"pre-line" }}>{"1. Call OCC/RN Supervisor — give appropriate info\n2. Call Anesthesia (if needed)\n3. Enter Procedure order\n\nOn-call team (RN/IR Tech) will post case utilizing P.O.S."}</div>
           </div>
         )}
 
