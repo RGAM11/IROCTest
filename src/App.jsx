@@ -58,7 +58,7 @@ const HOSPITAL_ROLES = {
   ],
   5: [
     { key:"IR",         label:"IR",            icon:"🩺", row:0 },
-    { key:"OCC",        label:"Nursing Supervisor",  icon:"📞", row:1, static:true, phone:"404-491-5493", badge:"call 1st", note:"OCC will call in IR Tech & RN.\n\nProvide following:\n• Patient name, MRN, location\n• Planned procedure & expected time\n• If anesthesia needed" },
+    { key:"OCC",        label:"Nursing Supervisor",  icon:"📞", row:1, static:true, phone:"404-491-5493", badge:"call 1st", note:"RN Supervisor will call in IR Tech & RN.\n\nProvide following:\n• Patient name, MRN, location\n• Planned procedure & expected time\n• If anesthesia needed\n\n⚠️ If unable to reach OCC, call EJCH Operator (678-474-7000) and ask for nursing supervisor." },
     { key:"POS",        label:"Point of Service",     icon:"📞", row:1, static:true, phone:"404-778-8298", note:"POS will help post case" },
     { key:"CTTech",     label:"CT Tech",       icon:"🖥️", row:1, static:true, phone:"470-707-5459", phone2:"470-686-2641", noText:true },
     { key:"Anesthesia", label:"Anesthesia",    icon:"💉", row:2, static:true, phone:"470-990-1356" },
@@ -668,11 +668,6 @@ export default function App() {
           </>
         )}
 
-        {selectedHospital === 5 && effectiveRole === "OCC" && (
-          <div style={{ marginTop:"10px", padding:"10px", borderRadius:"8px", background: dk ? "#2A2518" : "#FDF4DE", fontSize:"14px", color: dk ? "#D4A84A" : "#7A6228" }}>
-            ⚠️ If unable to reach OCC, call EJCH Operator (678-474-7000) and ask for nursing supervisor.
-          </div>
-        )}
       </div>
     </div>
   );
