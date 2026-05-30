@@ -27,16 +27,20 @@ const HOSPITAL_ROLES = {
   1: [
     { key:"IR",          label:"IR",              icon:"🩺", row:0, hideWeek:true },
     { key:"Resident",    label:"Resident",        icon:"🙃", row:0, hideWeek:true },
-    { key:"IHRN",        label:"In-House RN",           icon:"🩹", row:1, tint:"#ECF3F8", weekendOnly:true },
-    { key:"PrimaryRN",   label:"Primary RN",      icon:"🩹", row:1, tint:"#ECF3F8" },
-    { key:"SecondRN",    label:"2nd RN",           icon:"🩹", row:1, tint:"#ECF3F8", weekdayLink:"https://ehconnect.eushc.org/", weekdayLinkLabel:"Open EHConnect" },
-    { key:"IHTech",      label:"In-House Tech",          icon:"🔧", row:2, tint:"#EEF5F1", weekendOnly:true },
-    { key:"PrimaryTech", label:"Primary IR Tech",  icon:"🔧", row:2, tint:"#EEF5F1" },
-    { key:"SecondTech",  label:"2nd IR Tech",       icon:"🔧", row:2, tint:"#EEF5F1", weekdayLink:"https://ehconnect.eushc.org/", weekdayLinkLabel:"Open EHConnect" },
-    { key:"CTTech",      label:"CT Tech",           icon:"🖥️", row:3, static:true, phone:"404-712-7036" },
-    { key:"Anesthesia",  label:"Anesthesia",        icon:"💉", row:3, static:true, phone:"404-712-7283", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
-    { key:"EUH_Schedule", label:"Emailed Schedule", icon:"📋", row:4, static:true, phone:"", image:"/euh-schedule.png" },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:5, static:true, phone:"", tieLines:[{shortcut:"2-XXXX", prefix:"404712", display:"404-712-XXXX"},{shortcut:"8-XXXX", prefix:"404778", display:"404-778-XXXX"}] },
+    { key:"AllRN",       label:"RN",              icon:"🩹", row:1, tint:"#ECF3F8", composite:[
+      {key:"IHRN",      label:"In-House RN",     weekendOnly:true},
+      {key:"PrimaryRN", label:"Primary RN"},
+      {key:"SecondRN",  label:"2nd RN",           weekdayLink:"https://ehconnect.eushc.org/", weekdayLinkLabel:"Open EHConnect"},
+    ]},
+    { key:"AllTech",     label:"Tech",             icon:"🔧", row:1, tint:"#EEF5F1", composite:[
+      {key:"IHTech",      label:"In-House Tech",  weekendOnly:true},
+      {key:"PrimaryTech", label:"Primary IR Tech"},
+      {key:"SecondTech",  label:"2nd IR Tech",     weekdayLink:"https://ehconnect.eushc.org/", weekdayLinkLabel:"Open EHConnect"},
+    ]},
+    { key:"CTTech",      label:"CT Tech",           icon:"🖥️", row:2, static:true, phone:"404-712-7036" },
+    { key:"Anesthesia",  label:"Anesthesia",        icon:"💉", row:2, static:true, phone:"404-712-7283", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
+    { key:"EUH_Schedule", label:"Emailed Schedule", icon:"📋", row:3, static:true, phone:"", image:"/euh-schedule.png" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"", tieLines:[{shortcut:"2-XXXX", prefix:"404712", display:"404-712-XXXX"},{shortcut:"8-XXXX", prefix:"404778", display:"404-778-XXXX"}] },
   ],
   2: [
     { key:"IR",               label:"IR",                  icon:"🩺", row:0, hideWeek:true },
@@ -212,7 +216,11 @@ const initData = () => {
   const data = {};
   HOSPITALS.forEach(h => {
     data[h.id] = {};
-    (HOSPITAL_ROLES[h.id]||[]).forEach(role => { if (!role.static) data[h.id][role.key] = {}; });
+    (HOSPITAL_ROLES[h.id]||[]).forEach(role => {
+      if (!role.static) data[h.id][role.key] = {};
+      // Also init composite sub-keys
+      if (role.composite) role.composite.forEach(sub => { data[h.id][sub.key] = {}; });
+    });
   });
   return data;
 };
@@ -298,7 +306,7 @@ function TieLineDialer({ tieLines, T, color }) {
         ))}
       </div>
       <div style={{ display:"flex", gap:"6px", alignItems:"center" }}>
-        <div style={{ width:"110px", flexShrink:0 }}>
+        <div style={{ flex:1 }}>
           <input type="tel" maxLength={4} placeholder="4 digits" value={digits}
             onChange={e => setDigits(e.target.value.replace(/[^0-9]/g,"").slice(0,4))}
             style={{
@@ -312,7 +320,7 @@ function TieLineDialer({ tieLines, T, color }) {
           <a href={`tel:${full}`} style={{
             flex:1, padding:"10px 8px", borderRadius:"8px", background:color, color:"#fff",
             textDecoration:"none", fontWeight:700, fontSize:"13px", textAlign:"center", display:"block",
-          }}>📞 Call {fullDisplay}</a>
+          }}>📞 Call</a>
         ) : (
           <div style={{ flex:1, padding:"10px 8px", borderRadius:"8px", background:T.roleBg, border:`1.5px solid ${T.roleBorder}`,
             color:T.textMuted, fontSize:"12px", textAlign:"center" }}>
@@ -320,6 +328,7 @@ function TieLineDialer({ tieLines, T, color }) {
           </div>
         )}
       </div>
+      {fullDisplay && <div style={{ fontSize:"12px", color:T.textSub, textAlign:"center", marginTop:"4px" }}>→ {fullDisplay}</div>}
     </div>
   );
 }
@@ -493,7 +502,7 @@ export default function App() {
   const mapsUrl = hospital.address.startsWith("http") ? hospital.address : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hospital.address)}`;
 
   // #5/#6 Hide full week for roles with hideWeek flag or static roles
-  const showFullWeek = !activeRole?.static && !activeRole?.hideWeek;
+  const showFullWeek = !activeRole?.static && !activeRole?.hideWeek && !activeRole?.composite;
 
   const PhoneButtons = ({ phone, clr, noText }) => {
     if (!phone) return null;
@@ -609,8 +618,7 @@ export default function App() {
                     <PhoneButtons phone={activeRole.phone2} clr={hospital.color} noText={activeRole.noText} />
                   </>}
                 </>
-              ) : !activeRole.image ? <div style={{ color:T.textMuted, fontSize:"13px" }}>No number assigned</div> : null}
-              {/* #3 Notes: 14px, no italic */}
+              ) : null}
               {activeRole.note && <div style={{ fontSize:"14px", color: dk ? "#D4A84A" : "#8A6D2A", marginTop:"8px", whiteSpace:"pre-line" }}>⚠️ {activeRole.note}</div>}
               {activeRole.image && <ZoomImage src={activeRole.image} alt={activeRole.label} color={hospital.color} T={T} />}
               {activeRole.link && (
@@ -621,6 +629,65 @@ export default function App() {
                 }}>🔗 {activeRole.linkLabel || "Open Link"}</a>
               )}
               {activeRole.tieLines && <TieLineDialer tieLines={activeRole.tieLines} T={T} color={hospital.color} />}
+            </div>
+          ) : activeRole?.composite ? (
+            <div style={{ borderRadius:"12px", border:`2px solid ${hospital.color}30`, background:T.oncallBg, padding:"12px" }}>
+              {activeRole.composite.filter(sub => {
+                if (sub.weekendOnly && !isWeekendDay) return false;
+                return true;
+              }).map((sub, idx, arr) => {
+                const entry = schedule?.[selectedHospital]?.[sub.key]?.[selectedDay];
+                const hasData = entry && entry.name && entry.name !== "N/A" && entry.name !== "Weekend Only";
+                return (
+                  <div key={sub.key} style={{ paddingTop: idx > 0 ? "10px" : "0", marginTop: idx > 0 ? "10px" : "0", borderTop: idx > 0 ? `1px solid ${T.dayBorder}` : "none" }}>
+                    <div style={{ fontSize:"10px", fontWeight:700, color:hospital.color, letterSpacing:"1px", textTransform:"uppercase", marginBottom:"4px" }}>
+                      {sub.label}{entry?.time ? ` — ${entry.time}` : ""}
+                    </div>
+                    {hasData ? (
+                      <>
+                        {entry.entries && entry.entries.length > 0 ? (
+                          <div style={{ display:"flex", flexDirection:"column", gap:"6px" }}>
+                            {entry.entries.map((e, ei) => (
+                              <div key={ei}>
+                                <div style={{ fontSize:"14px", fontWeight:600, color:T.text }}>{e.name}{e.phone ? <span style={{ fontWeight:500, fontSize:"12px", color:T.textSub }}> · 📞 {e.phone}</span> : ""}</div>
+                                <PhoneButtons phone={e.phone} clr={hospital.color} />
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <>
+                            <div style={{ fontSize:"14px", fontWeight:600, color:T.text }}>{entry.name}{entry.phone ? <span style={{ fontWeight:500, fontSize:"12px", color:T.textSub }}> · 📞 {entry.phone}</span> : ""}</div>
+                            <PhoneButtons phone={entry.phone} clr={hospital.color} />
+                            {entry.name2 && (
+                              <div style={{ marginTop:"6px" }}>
+                                <div style={{ fontSize:"13px", fontWeight:500, color:T.text }}>{entry.name2}{entry.time2 ? <span style={{ fontSize:"11px", color:T.textSub }}> · {entry.time2}</span> : ""}{entry.phone2 ? <span style={{ fontSize:"11px", color:T.textSub }}> · 📞 {entry.phone2}</span> : ""}</div>
+                                <PhoneButtons phone={entry.phone2} clr={hospital.color} />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {sub.weekdayLink && !isWeekendDay && selectedDay !== "Friday" && (
+                          <a href={sub.weekdayLink} target="_blank" rel="noopener noreferrer" style={{
+                            display:"inline-flex", alignItems:"center", gap:"5px", marginTop:"6px",
+                            padding:"6px 12px", borderRadius:"6px", textDecoration:"none",
+                            background:"linear-gradient(135deg, #4A6FA0 0%, #2B4A7A 100%)", color:"#fff", fontWeight:700, fontSize:"11px",
+                          }}>🔗 {sub.weekdayLinkLabel || "Open EHConnect"}</a>
+                        )}
+                      </>
+                    ) : (
+                      <div style={{ color:T.textMuted, fontSize:"12px" }}>
+                        {sub.weekdayLink && !isWeekendDay && selectedDay !== "Friday" ? (
+                          <a href={sub.weekdayLink} target="_blank" rel="noopener noreferrer" style={{
+                            display:"inline-flex", alignItems:"center", gap:"5px",
+                            padding:"6px 12px", borderRadius:"6px", textDecoration:"none",
+                            background:"linear-gradient(135deg, #4A6FA0 0%, #2B4A7A 100%)", color:"#fff", fontWeight:700, fontSize:"11px",
+                          }}>🔗 {sub.weekdayLinkLabel || "Open EHConnect"}</a>
+                        ) : "—"}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : todayEntry && todayEntry.name && todayEntry.name !== "N/A" && todayEntry.name !== "Weekend Only" ? (
             <div style={{ borderRadius:"12px", border:`2px solid ${hospital.color}30`, background:T.oncallBg, padding:"12px" }}>
