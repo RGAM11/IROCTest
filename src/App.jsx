@@ -33,7 +33,7 @@ const HOSPITAL_ROLES = {
     { key:"IHTech",      label:"In-House Tech",          icon:"🔧", row:2, tint:"#EEF5F1", weekendOnly:true },
     { key:"PrimaryTech", label:"Primary IR Tech",  icon:"🔧", row:2, tint:"#EEF5F1" },
     { key:"SecondTech",  label:"2nd IR Tech",       icon:"🔧", row:2, tint:"#EEF5F1", weekdayLink:"https://ehconnect.eushc.org/", weekdayLinkLabel:"Open EHConnect" },
-    { key:"CTTech",      label:"CT Tech",           icon:"🖥️", row:3, static:true, phone:"" },
+    { key:"CTTech",      label:"CT Tech",           icon:"🖥️", row:3, static:true, phone:"404-712-7036" },
     { key:"Anesthesia",  label:"Anesthesia",        icon:"💉", row:3, static:true, phone:"404-712-7283", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"EUH_Schedule", label:"Emailed Schedule", icon:"📋", row:4, static:true, phone:"", image:"/euh-schedule.png" },
   ],
@@ -356,7 +356,7 @@ export default function App() {
           <div style={{ position:"relative" }}>
             <div style={{ position:"absolute", top:"85%", left:"50%", transform:"translate(-50%,-50%)", width:"55vw", maxWidth:"300px", aspectRatio:"1",
               backgroundImage:`url("${CREST_URL}")`, backgroundSize:"contain", backgroundRepeat:"no-repeat", backgroundPosition:"center",
-              opacity: dk ? 0.04 : 0.07, pointerEvents:"none", zIndex:0 }} />
+              opacity: dk ? 0.07 : 0.07, pointerEvents:"none", zIndex:0, filter: dk ? "invert(1)" : "none" }} />
             <div style={{ paddingTop:"76px", textAlign:"center", position:"relative", zIndex:1 }}>
               <div style={{ fontSize:"12px", letterSpacing:"4px", color:T.textMuted, fontWeight:700, textTransform:"uppercase" }}>Interventional Radiology On-Call</div>
               <div style={{ fontSize:"50px", fontWeight:900, letterSpacing:"3px", marginTop:"2px", lineHeight:"1" }}>
@@ -491,21 +491,21 @@ export default function App() {
 
         {/* ROLE selector */}
         <div style={{ fontSize:"10px", letterSpacing:"2px", color:T.textMuted, fontWeight:700, marginBottom:"5px", textTransform:"uppercase" }}>Role</div>
-        <div style={{ display:"flex", flexDirection:"column", gap:"6px", marginBottom:"14px" }}>
+        <div style={{ display:"flex", flexDirection:"column", gap:"4px", marginBottom:"12px" }}>
           {Object.keys(rowGroups).sort().map(rn => (
-            <div key={rn} style={{ display:"grid", gridTemplateColumns:`repeat(${rowGroups[rn].length},1fr)`, gap:"6px" }}>
+            <div key={rn} style={{ display:"grid", gridTemplateColumns:`repeat(${rowGroups[rn].length},1fr)`, gap:"4px" }}>
               {rowGroups[rn].map(role => {
                 const act = effectiveRole === role.key;
                 return (
                   <div key={role.key} onClick={()=>setSelectedRole(role.key)} style={{
-                    textAlign:"center", padding:"10px 4px", borderRadius:"10px", cursor:"pointer",
+                    textAlign:"center", padding:"7px 3px", borderRadius:"8px", cursor:"pointer",
                     background: act ? hospital.color : (role.tint && !dk ? role.tint : T.roleBg),
                     border:`2px solid ${act ? hospital.color : T.roleBorder}`,
                     color: act ? "#fff" : T.roleText,
                     boxShadow: act ? `0 2px 6px ${hospital.color}40` : "none",
                   }}>
-                    <div style={{ fontSize:"16px" }}>{role.icon}</div>
-                    <div style={{ fontSize:"12px", fontWeight:700, lineHeight:"1.2", marginTop:"2px" }}>{role.label}{role.badge && <span style={{ fontSize:"9px", fontWeight:600, opacity:0.75, display:"block" }}>({role.badge})</span>}</div>
+                    <div style={{ fontSize:"14px" }}>{role.icon}</div>
+                    <div style={{ fontSize:"10px", fontWeight:700, lineHeight:"1.2", marginTop:"1px" }}>{role.label}{role.badge && <span style={{ fontSize:"8px", fontWeight:600, opacity:0.75, display:"block" }}>({role.badge})</span>}</div>
                   </div>
                 );
               })}
@@ -538,7 +538,7 @@ export default function App() {
           </div>
 
           {activeRole?.static ? (
-            <div style={{ borderRadius:"12px", border:`2px solid ${hospital.color}30`, background:T.oncallBg, padding:"14px" }}>
+            <div style={{ borderRadius:"12px", border:`2px solid ${hospital.color}30`, background:T.oncallBg, padding:"12px" }}>
               <div style={{ fontSize:"10px", fontWeight:700, color:hospital.color, letterSpacing:"1px", textTransform:"uppercase", marginBottom:"4px" }}>
                 {activeRole.icon} {activeRole.label}
               </div>
@@ -564,26 +564,23 @@ export default function App() {
               )}
             </div>
           ) : todayEntry && todayEntry.name && todayEntry.name !== "N/A" && todayEntry.name !== "Weekend Only" ? (
-            <div style={{ borderRadius:"12px", border:`2px solid ${hospital.color}30`, background:T.oncallBg, padding:"14px" }}>
-              <div style={{ fontSize:"10px", fontWeight:700, color:hospital.color, letterSpacing:"1px", textTransform:"uppercase", marginBottom:"3px" }}>
-                {activeRole?.icon} {activeRole?.label}
+            <div style={{ borderRadius:"12px", border:`2px solid ${hospital.color}30`, background:T.oncallBg, padding:"12px" }}>
+              <div style={{ fontSize:"11px", fontWeight:700, color:hospital.color, letterSpacing:"1px", textTransform:"uppercase", marginBottom:"6px" }}>
+                {activeRole?.icon} {activeRole?.label}{todayEntry.time ? ` — ${todayEntry.time}` : ""}
               </div>
-              {todayEntry.time && <div style={{ fontSize:"12px", color:T.textSub, marginBottom:"6px" }}>{todayEntry.time}</div>}
-              {/* Multi-person entries (IH RN/Tech) */}
+              {/* Multi-person entries (In-House RN/Tech) */}
               {todayEntry.entries && todayEntry.entries.length > 0 ? (
-                <div style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
+                <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
                   {todayEntry.entries.map((e, idx) => (
-                    <div key={idx} style={{ paddingTop: idx > 0 ? "10px" : "0", borderTop: idx > 0 ? `1px solid ${T.dayBorder}` : "none" }}>
-                      <div style={{ fontSize:"16px", fontWeight:700, color:T.text }}>{e.name}</div>
-                      {e.phone && <div style={{ fontSize:"14px", fontWeight:600, color:T.text, marginTop:"2px" }}>📞 {e.phone}</div>}
+                    <div key={idx} style={{ paddingTop: idx > 0 ? "8px" : "0", borderTop: idx > 0 ? `1px solid ${T.dayBorder}` : "none" }}>
+                      <div style={{ fontSize:"15px", fontWeight:700, color:T.text }}>{e.name}{e.phone ? <span style={{ fontWeight:500, fontSize:"13px", color:T.textSub }}> · 📞 {e.phone}</span> : ""}</div>
                       <PhoneButtons phone={e.phone} clr={hospital.color} />
                     </div>
                   ))}
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize:"18px", fontWeight:700, color:T.text }}>{todayEntry.name}</div>
-                  {todayEntry.phone && <div style={{ fontSize:"15px", fontWeight:600, color:T.text, marginTop:"4px" }}>📞 {todayEntry.phone}</div>}
+                  <div style={{ fontSize:"16px", fontWeight:700, color:T.text }}>{todayEntry.name}{todayEntry.phone ? <span style={{ fontWeight:500, fontSize:"13px", color:T.textSub }}> · 📞 {todayEntry.phone}</span> : ""}</div>
                   <PhoneButtons phone={todayEntry.phone} clr={hospital.color} />
                   {activeRole?.weekdayLink && !isWeekendDay && selectedDay !== "Friday" && (
                     <a href={activeRole.weekdayLink} target="_blank" rel="noopener noreferrer" style={{
@@ -593,10 +590,8 @@ export default function App() {
                     }}>🔗 {activeRole.weekdayLinkLabel || "Open EHConnect"}</a>
                   )}
                   {todayEntry.name2 && (
-                    <div style={{ marginTop:"12px", paddingTop:"10px", borderTop:`1px solid ${T.dayBorder}` }}>
-                      <div style={{ fontSize:"15px", fontWeight:600, color:T.text }}>{todayEntry.name2}</div>
-                      {todayEntry.time2 && <div style={{ fontSize:"11px", color:T.textSub }}>{todayEntry.time2}</div>}
-                      {todayEntry.phone2 && <div style={{ fontSize:"14px", fontWeight:600, color:T.text, marginTop:"3px" }}>📞 {todayEntry.phone2}</div>}
+                    <div style={{ marginTop:"10px", paddingTop:"8px", borderTop:`1px solid ${T.dayBorder}` }}>
+                      <div style={{ fontSize:"14px", fontWeight:600, color:T.text }}>{todayEntry.name2}{todayEntry.time2 ? <span style={{ fontWeight:400, fontSize:"11px", color:T.textSub }}> · {todayEntry.time2}</span> : ""}{todayEntry.phone2 ? <span style={{ fontWeight:500, fontSize:"12px", color:T.textSub }}> · 📞 {todayEntry.phone2}</span> : ""}</div>
                       <PhoneButtons phone={todayEntry.phone2} clr={hospital.color} />
                     </div>
                   )}
