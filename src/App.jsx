@@ -36,19 +36,19 @@ const HOSPITAL_ROLES = {
     { key:"CTTech",      label:"CT Tech",           icon:"🖥️", row:3, static:true, phone:"404-712-7036" },
     { key:"Anesthesia",  label:"Anesthesia",        icon:"💉", row:3, static:true, phone:"404-712-7283", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"EUH_Schedule", label:"Emailed Schedule", icon:"📋", row:4, static:true, phone:"", image:"/euh-schedule.png" },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:5, static:true, phone:"", tieLines:[{shortcut:"2-XXXX", prefix:"404712", display:"404-712-XXXX"},{shortcut:"7-XXXX", prefix:"303727", display:"303-727-XXXX"}] },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:5, static:true, phone:"", tieLines:[{shortcut:"2-XXXX", prefix:"404712", display:"404-712-XXXX"},{shortcut:"8-XXXX", prefix:"404778", display:"404-778-XXXX"}] },
   ],
   2: [
     { key:"IR",               label:"IR",                  icon:"🩺", row:0, hideWeek:true },
     { key:"NursingSupervisor",label:"Nursing Supervisor",  icon:"👩‍⚕️", row:1, static:true, phone:"470-382-0191", note:"Nursing Supervisor will provide information on the technologist and the RN on call." },
     { key:"Anesthesia",       label:"Anesthesia",          icon:"💉", row:1, static:true, phone:"", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:2, static:true, phone:"", note:"Contact your department for additional numbers" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:2, static:true, phone:"", tieLines:[{shortcut:"1-XXXX", prefix:"404501", display:"404-501-XXXX"}] },
   ],
   3: [
     { key:"IR",                  label:"IR",                   icon:"🩺", row:0, hideWeek:true },
     { key:"RadiologySupervisor", label:"Radiology Supervisor", icon:"🔬", row:1, static:true, phone:"470-630-7477", note:"Radiology Supervisor will provide information on the technologist and the RN on call." },
     { key:"Anesthesia",          label:"Anesthesia",           icon:"💉", row:1, static:true, phone:"678-371-9038" },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:2, static:true, phone:"", note:"Contact your department for additional numbers" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:2, static:true, phone:"", tieLines:[{shortcut:"1-XXXX", prefix:"404501", display:"404-501-XXXX"}] },
   ],
   4: [
     { key:"IR",          label:"IR",      icon:"🩺", row:0, hideWeek:true },
@@ -58,7 +58,7 @@ const HOSPITAL_ROLES = {
     { key:"ESJH_Anesthesia", label:"Anesthesia",       icon:"💉", row:2, static:true, phone:"", note:'EHConnect → On-Call → Anesthesiology → select "Anesthesiology - ESJH - Anesthesiologist - 1"', link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"ESJH_RadMain",   label:"Radiology Main",    icon:"📞", row:2, static:true, phone:"678-843-7341" },
     { key:"ESJH_ORFront",   label:"OR Front Desk",     icon:"📞", row:2, static:true, phone:"678-843-7360" },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"", note:"Contact your department for additional numbers" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"", tieLines:[{shortcut:"3-XXXX", prefix:"404843", display:"404-843-XXXX"}] },
   ],
   5: [
     { key:"IR",         label:"IR",            icon:"🩺", row:0, hideWeek:true },
@@ -67,7 +67,7 @@ const HOSPITAL_ROLES = {
     { key:"CTTech",     label:"CT Tech",       icon:"🖥️", row:1, static:true, phone:"470-707-5459", phone2:"470-686-2641", noText:true },
     { key:"Anesthesia", label:"Anesthesia",    icon:"💉", row:2, static:true, phone:"470-990-1356" },
     { key:"Operator",   label:"EJCH Operator", icon:"📞", row:2, static:true, phone:"678-474-7000" },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"", note:"Contact your department for additional numbers" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"", tieLines:[{shortcut:"4-XXXX", prefix:"404474", display:"404-474-XXXX"}] },
   ],
   6: [
     { key:"IR",          label:"IR",         icon:"🩺", row:0, hideWeek:true },
@@ -77,7 +77,7 @@ const HOSPITAL_ROLES = {
     { key:"RadFrontDesk",label:"Radiology Front Desk", icon:"📞", row:1, static:true, phone:"404-686-5998", note:"Call to find out the on-call RN and IR Tech" },
     { key:"CTTech",      label:"CT Tech",    icon:"🖥️", row:2, static:true, phone:"404-696-8984" },
     { key:"Anesthesia",  label:"Anesthesia", icon:"💉", row:2, static:true, phone:"", note:"Check on EHConnect for on-call anesthesiologist", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"", note:"Contact your department for additional numbers" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"", tieLines:[{shortcut:"6-XXXX", prefix:"404686", display:"404-686-XXXX"}] },
   ],
   7: [
     { key:"IR",          label:"IR",         icon:"🩺", row:0, hideWeek:true },
@@ -86,7 +86,7 @@ const HOSPITAL_ROLES = {
     { key:"RN",          label:"RN",         icon:"🩹", row:1, hideWeek:true },
     { key:"MTC",         label:"MTC",        icon:"🏥", row:2, static:true, phone:"404-616-2226" },
     { key:"Anesthesia",  label:"Anesthesia", icon:"💉", row:2, static:true, phone:"404-852-3253" },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"", note:"Contact your department for additional numbers" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"", tieLines:[{shortcut:"5-XXXX", prefix:"404616", display:"404-616-XXXX"},{shortcut:"4-XXXX", prefix:"404489", display:"404-489-XXXX"}] },
   ],
 };
 
@@ -297,34 +297,29 @@ function TieLineDialer({ tieLines, T, color }) {
           }}>{tl.shortcut}</div>
         ))}
       </div>
-      <div style={{ display:"flex", gap:"8px", alignItems:"center" }}>
-        <div style={{ flex:1, position:"relative" }}>
-          <input type="tel" maxLength={4} placeholder="Last 4 digits" value={digits}
+      <div style={{ display:"flex", gap:"6px", alignItems:"center" }}>
+        <div style={{ width:"110px", flexShrink:0 }}>
+          <input type="tel" maxLength={4} placeholder="4 digits" value={digits}
             onChange={e => setDigits(e.target.value.replace(/[^0-9]/g,"").slice(0,4))}
             style={{
-              width:"100%", padding:"10px 12px", borderRadius:"8px", fontSize:"16px", fontWeight:600, letterSpacing:"4px",
+              width:"100%", padding:"8px 6px", borderRadius:"8px", fontSize:"16px", fontWeight:600, letterSpacing:"4px",
               border:`2px solid ${digits.length === 4 ? color : T.roleBorder}`,
               background:T.roleBg, color:T.text, outline:"none", textAlign:"center",
               boxSizing:"border-box",
             }} />
         </div>
-        {full && (
+        {full ? (
           <a href={`tel:${full}`} style={{
-            padding:"10px 16px", borderRadius:"8px", background:color, color:"#fff",
-            textDecoration:"none", fontWeight:700, fontSize:"13px", flexShrink:0,
-          }}>📞 Call</a>
+            flex:1, padding:"10px 8px", borderRadius:"8px", background:color, color:"#fff",
+            textDecoration:"none", fontWeight:700, fontSize:"13px", textAlign:"center", display:"block",
+          }}>📞 Call {fullDisplay}</a>
+        ) : (
+          <div style={{ flex:1, padding:"10px 8px", borderRadius:"8px", background:T.roleBg, border:`1.5px solid ${T.roleBorder}`,
+            color:T.textMuted, fontSize:"12px", textAlign:"center" }}>
+            {digits.length > 0 ? `${4-digits.length} more digit${4-digits.length!==1?"s":""}` : "Enter last 4"}
+          </div>
         )}
       </div>
-      {fullDisplay && (
-        <div style={{ fontSize:"13px", color:T.textSub, textAlign:"center", marginTop:"6px" }}>
-          Dialing: <strong style={{ color:T.text }}>{fullDisplay}</strong>
-        </div>
-      )}
-      {!full && digits.length > 0 && (
-        <div style={{ fontSize:"11px", color:T.textMuted, textAlign:"center", marginTop:"4px" }}>
-          Type {4 - digits.length} more digit{4 - digits.length !== 1 ? "s" : ""}
-        </div>
-      )}
     </div>
   );
 }
