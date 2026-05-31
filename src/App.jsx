@@ -312,23 +312,29 @@ function TieLineDialer({ tieLines, T, color }) {
             }}>{tl.shortcut}</div>
           ))}
         </div>
-        <div style={{ flex:"0 0 40%" }}>
+        <div style={{ flex:"0 0 35%" }}>
           <input type="tel" maxLength={4} placeholder="4 digits" value={digits}
             onChange={e => setDigits(e.target.value.replace(/[^0-9]/g,"").slice(0,4))}
             style={{
-              width:"100%", height:"100%", padding:"8px 6px", borderRadius:"8px", fontSize:"18px", fontWeight:600, letterSpacing:"5px",
+              width:"100%", height:"100%", padding:"8px 4px", borderRadius:"8px", fontSize:"18px", fontWeight:600, letterSpacing:"5px",
               border:`2px solid ${digits.length === 4 ? color : T.roleBorder}`,
               background:T.roleBg, color:T.text, outline:"none", textAlign:"center",
               boxSizing:"border-box",
             }} />
         </div>
+        {full ? (
+          <a href={`tel:${full}`} style={{
+            flex:1, display:"flex", alignItems:"center", justifyContent:"center",
+            padding:"8px 6px", borderRadius:"8px", background:color, color:"#fff",
+            textDecoration:"none", fontWeight:700, fontSize:"12px", textAlign:"center",
+          }}>📞 {fullDisplay}</a>
+        ) : (
+          <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center",
+            padding:"8px 6px", borderRadius:"8px", background:T.roleBg, border:`1.5px solid ${T.roleBorder}`,
+            color:T.textMuted, fontSize:"11px", textAlign:"center",
+          }}>{digits.length > 0 ? `${4-digits.length} more` : "Enter 4 digits"}</div>
+        )}
       </div>
-      {full && (
-        <a href={`tel:${full}`} style={{
-          display:"block", marginTop:"8px", padding:"10px", borderRadius:"8px", background:color, color:"#fff",
-          textDecoration:"none", fontWeight:700, fontSize:"14px", textAlign:"center",
-        }}>📞 Call {fullDisplay}</a>
-      )}
     </div>
   );
 }
@@ -635,13 +641,16 @@ export default function App() {
               {activeRole.composite.filter(sub => {
                 if (sub.weekendOnly && !isWeekendDay) return false;
                 return true;
-              }).map((sub) => {
+              }).map((sub, subIdx) => {
                 const entry = schedule?.[selectedHospital]?.[sub.key]?.[selectedDay];
                 const hasData = entry && entry.name && entry.name !== "N/A" && entry.name !== "Weekend Only";
+                const boxBg = subIdx % 2 === 0
+                  ? (dk ? `${hospital.color}12` : `${hospital.color}08`)
+                  : (dk ? T.oncallBg : "#ffffff");
                 return (
-                  <div key={sub.key} style={{ borderRadius:"12px", border:`2px solid ${hospital.color}40`, background: dk ? `${hospital.color}12` : `${hospital.color}08`, padding:"10px" }}>
+                  <div key={sub.key} style={{ borderRadius:"12px", border:`2px solid ${hospital.color}40`, background:boxBg, padding:"10px" }}>
                     <div style={{ fontSize:"12px", fontWeight:800, color:hospital.color, letterSpacing:"1px", textTransform:"uppercase", textAlign:"center", marginBottom:"6px" }}>
-                      {sub.label}{entry?.time ? ` — ${entry.time}` : ""}
+                      {sub.label}
                     </div>
                     {hasData ? (
                       <>
@@ -649,18 +658,29 @@ export default function App() {
                           <div style={{ display:"flex", flexDirection:"column", gap:"4px" }}>
                             {entry.entries.map((e, ei) => (
                               <div key={ei} style={{ padding:"6px 0", borderTop: ei > 0 ? `1px solid ${T.dayBorder}` : "none" }}>
-                                <div style={{ fontSize:"14px", fontWeight:600, color:T.text }}>{e.name}{e.phone ? <span style={{ fontWeight:500, fontSize:"12px", color:T.textSub }}> · 📞 {e.phone}</span> : ""}</div>
+                                <div style={{ fontSize:"14px", fontWeight:600, color:T.text }}>
+                                  {e.name}
+                                  {e.phone ? <span style={{ fontWeight:500, fontSize:"12px", color:T.textSub }}> · 📞 {e.phone}</span> : ""}
+                                </div>
                                 <PhoneButtons phone={e.phone} clr={hospital.color} />
                               </div>
                             ))}
                           </div>
                         ) : (
                           <>
-                            <div style={{ fontSize:"14px", fontWeight:600, color:T.text }}>{entry.name}{entry.phone ? <span style={{ fontWeight:500, fontSize:"12px", color:T.textSub }}> · 📞 {entry.phone}</span> : ""}</div>
+                            <div style={{ fontSize:"14px", fontWeight:600, color:T.text }}>
+                              {entry.name}
+                              {entry.time ? <span style={{ fontWeight:500, fontSize:"11px", color:T.textSub }}> · {entry.time}</span> : ""}
+                              {entry.phone ? <span style={{ fontWeight:500, fontSize:"12px", color:T.textSub }}> · 📞 {entry.phone}</span> : ""}
+                            </div>
                             <PhoneButtons phone={entry.phone} clr={hospital.color} />
                             {entry.name2 && (
                               <div style={{ marginTop:"6px", paddingTop:"6px", borderTop:`1px solid ${T.dayBorder}` }}>
-                                <div style={{ fontSize:"13px", fontWeight:500, color:T.text }}>{entry.name2}{entry.time2 ? <span style={{ fontSize:"11px", color:T.textSub }}> · {entry.time2}</span> : ""}{entry.phone2 ? <span style={{ fontSize:"11px", color:T.textSub }}> · 📞 {entry.phone2}</span> : ""}</div>
+                                <div style={{ fontSize:"14px", fontWeight:600, color:T.text }}>
+                                  {entry.name2}
+                                  {entry.time2 ? <span style={{ fontWeight:500, fontSize:"11px", color:T.textSub }}> · {entry.time2}</span> : ""}
+                                  {entry.phone2 ? <span style={{ fontWeight:500, fontSize:"12px", color:T.textSub }}> · 📞 {entry.phone2}</span> : ""}
+                                </div>
                                 <PhoneButtons phone={entry.phone2} clr={hospital.color} />
                               </div>
                             )}
