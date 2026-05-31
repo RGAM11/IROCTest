@@ -37,11 +37,11 @@ const HOSPITAL_ROLES = {
       {key:"PrimaryTech", label:"Primary IR Tech"},
       {key:"SecondTech",  label:"2nd IR Tech",       weekdayLink:"https://ehconnect.eushc.org/", weekdayLinkLabel:"Open EHConnect"},
     ]},
-    { key:"CTTech",      label:"CT Tech",           icon:"🖥️", row:2, static:true, phone:"404-712-7036" },
+    { key:"CTTech",      label:"CT Tech",           icon:"🖥️", row:1, static:true, phone:"404-712-7036" },
     { key:"Anesthesia",  label:"Anesthesia",        icon:"💉", row:2, static:true, phone:"404-712-7283", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
+    { key:"TieLines",    label:"Tie Line Dialer",   icon:"📞", row:2, static:true, phone:"", tieLines:[{shortcut:"2-XXXX", prefix:"404712", display:"404-712-XXXX"},{shortcut:"8-XXXX", prefix:"404778", display:"404-778-XXXX"}] },
+    { key:"OtherPhones", label:"Other Numbers",     icon:"📱", row:2, static:true, phone:"" },
     { key:"EUH_Schedule", label:"Emailed Schedule", icon:"📋", row:3, static:true, phone:"", image:"/euh-schedule.png" },
-    { key:"TieLines",    label:"Tie Line Dialer",         icon:"📞", row:4, static:true, phone:"", tieLines:[{shortcut:"2-XXXX", prefix:"404712", display:"404-712-XXXX"},{shortcut:"8-XXXX", prefix:"404778", display:"404-778-XXXX"}] },
-    { key:"OtherPhones", label:"Other Numbers",     icon:"📱", row:4, static:true, phone:"" },
   ],
   2: [
     { key:"IR",               label:"IR",                  icon:"🩺", row:0, hideWeek:true },
@@ -524,7 +524,7 @@ export default function App() {
   return (
     <div style={{ minHeight:"100vh", background:T.detailBg, fontFamily:font, overflowX:"hidden" }}>
       {/* #8 Header — full name only, no abbreviation */}
-      <div style={{ background:hospital.color, padding:"18px 16px", display:"flex", alignItems:"center", gap:"10px" }}>
+      <div style={{ background:hospital.color, padding:"18px 16px", display:"flex", alignItems:"center", gap:"10px", position:"sticky", top:0, zIndex:100 }}>
         <div onClick={()=>setSelectedHospital(null)} style={{
           padding:"10px 20px", borderRadius:"10px", background:"rgba(255,255,255,0.2)",
           color:"#fff", fontSize:"15px", fontWeight:700, cursor:"pointer", flexShrink:0,
@@ -639,8 +639,8 @@ export default function App() {
                 const entry = schedule?.[selectedHospital]?.[sub.key]?.[selectedDay];
                 const hasData = entry && entry.name && entry.name !== "N/A" && entry.name !== "Weekend Only";
                 return (
-                  <div key={sub.key} style={{ borderRadius:"12px", border:`2px solid ${hospital.color}30`, background:T.oncallBg, padding:"10px" }}>
-                    <div style={{ fontSize:"10px", fontWeight:700, color:hospital.color, letterSpacing:"1px", textTransform:"uppercase", textAlign:"center", marginBottom:"6px" }}>
+                  <div key={sub.key} style={{ borderRadius:"12px", border:`2px solid ${hospital.color}40`, background: dk ? `${hospital.color}12` : `${hospital.color}08`, padding:"10px" }}>
+                    <div style={{ fontSize:"12px", fontWeight:800, color:hospital.color, letterSpacing:"1px", textTransform:"uppercase", textAlign:"center", marginBottom:"6px" }}>
                       {sub.label}{entry?.time ? ` — ${entry.time}` : ""}
                     </div>
                     {hasData ? (
