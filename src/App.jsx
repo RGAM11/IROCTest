@@ -40,43 +40,41 @@ const HOSPITAL_ROLES = {
     { key:"CTTech",      label:"CT Tech",           icon:"🖥️", row:1, static:true, phone:"404-712-7036" },
     { key:"Anesthesia",  label:"Anesthesia",        icon:"💉", row:2, static:true, phone:"404-712-7283", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"TieLines",    label:"Tie Line Dialer",   icon:"📞", row:2, static:true, phone:"", tieLines:[{shortcut:"2-XXXX", prefix:"404712", display:"404-712-XXXX"},{shortcut:"8-XXXX", prefix:"404778", display:"404-778-XXXX"}] },
-    { key:"OtherPhones", label:"Other Numbers",     icon:"📱", row:2, static:true, phone:"" },
-    { key:"EUH_Schedule", label:"Emailed Schedule", icon:"📋", row:3, static:true, phone:"", image:"/euh-schedule.png" },
+    { key:"OtherPhones", label:"Other Numbers",     icon:"📱", row:2, static:true, phone:"" , numbers:[{label:"Operator", phone:"404-712-2000"}] },
   ],
   2: [
     { key:"IR",               label:"IR",                  icon:"🩺", row:0, hideWeek:true },
     { key:"NursingSupervisor",label:"Nursing Supervisor",  icon:"👩‍⚕️", row:1, static:true, phone:"470-382-0191", note:"Nursing Supervisor will provide information on the technologist and the RN on call." },
     { key:"Anesthesia",       label:"Anesthesia",          icon:"💉", row:1, static:true, phone:"", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"TieLines", label:"Tie Line Dialer", icon:"📞", row:2, static:true, phone:"", tieLines:[{shortcut:"1-XXXX", prefix:"404501", display:"404-501-XXXX"}] },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:2, static:true, phone:"" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:2, static:true, phone:"" , numbers:[{label:"Operator", phone:"404-501-8000"}] },
   ],
   3: [
     { key:"IR",                  label:"IR",                   icon:"🩺", row:0, hideWeek:true },
     { key:"RadiologySupervisor", label:"Radiology Supervisor", icon:"🔬", row:1, static:true, phone:"470-630-7477", note:"Radiology Supervisor will provide information on the technologist and the RN on call." },
     { key:"Anesthesia",          label:"Anesthesia",           icon:"💉", row:1, static:true, phone:"678-371-9038" },
     { key:"TieLines", label:"Tie Line Dialer", icon:"📞", row:2, static:true, phone:"", tieLines:[{shortcut:"1-XXXX", prefix:"404501", display:"404-501-XXXX"}] },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:2, static:true, phone:"" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:2, static:true, phone:"" , numbers:[{label:"Operator", phone:"404-501-1000"}] },
   ],
   4: [
     { key:"IR",          label:"IR",      icon:"🩺", row:0, hideWeek:true },
-    { key:"Technologist",label:"IR Tech", icon:"🔧", row:1, hideWeek:true },
+    { key:"Technologist",label:"IR Tech", icon:"🔧", row:1 },
     { key:"RN",          label:"IR RN",  icon:"🩹", row:1 },
     { key:"ESJH_CTTech",     label:"CT Tech",          icon:"🖥️", row:1, static:true, phone:"678-843-7093" },
     { key:"ESJH_Anesthesia", label:"Anesthesia",       icon:"💉", row:2, static:true, phone:"", note:'EHConnect → On-Call → Anesthesiology → select "Anesthesiology - ESJH - Anesthesiologist - 1"', link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"ESJH_RadMain",   label:"Radiology Main",    icon:"📞", row:2, static:true, phone:"678-843-7341" },
     { key:"ESJH_ORFront",   label:"OR Front Desk",     icon:"📞", row:2, static:true, phone:"678-843-7360" },
     { key:"TieLines", label:"Tie Line Dialer", icon:"📞", row:3, static:true, phone:"", tieLines:[{shortcut:"3-XXXX", prefix:"404843", display:"404-843-XXXX"}] },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"" , numbers:[{label:"Operator", phone:"678-843-7001"}] },
   ],
   5: [
     { key:"IR",         label:"IR",            icon:"🩺", row:0, hideWeek:true },
-    { key:"OCC",        label:"Nursing Supervisor",  icon:"📞", row:1, static:true, phone:"404-491-5493", badge:"call 1st", note:"RN Supervisor will call in IR Tech & RN.\n\nProvide following:\n• Patient name, MRN, location\n• Planned procedure & expected time\n• If anesthesia needed\n\n⚠️ If unable to reach OCC, call EJCH Operator (678-474-7000) and ask for nursing supervisor." },
+    { key:"OCC",        label:"Nursing Supervisor",  icon:"📞", row:1, static:true, phone:"404-491-5493", badge:"call 1st", note:"RN Supervisor will call in IR Tech & RN.\n\nProvide following:\n• Patient name, MRN, location\n• Planned procedure & expected time\n• If anesthesia needed\n\n⚠️ If unable to reach, call EJCH Operator (678-474-7000) and ask for nursing supervisor." },
     { key:"POS",        label:"Point of Service",     icon:"📞", row:1, static:true, phone:"404-778-8298", note:"POS will help post case" },
-    { key:"CTTech",     label:"CT Tech",       icon:"🖥️", row:1, static:true, phone:"470-707-5459", phone2:"470-686-2641", noText:true },
+    { key:"CTTech",     label:"CT Tech",       icon:"🖥️", row:2, static:true, phone:"470-707-5459", phone2:"470-686-2641", noText:true },
     { key:"Anesthesia", label:"Anesthesia",    icon:"💉", row:2, static:true, phone:"470-990-1356" },
-    { key:"Operator",   label:"EJCH Operator", icon:"📞", row:2, static:true, phone:"678-474-7000" },
     { key:"TieLines", label:"Tie Line Dialer", icon:"📞", row:3, static:true, phone:"", tieLines:[{shortcut:"4-XXXX", prefix:"404474", display:"404-474-XXXX"}] },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"", numbers:[{label:"Operator", phone:"678-474-7000"}] },
   ],
   6: [
     { key:"IR",          label:"IR",         icon:"🩺", row:0, hideWeek:true },
@@ -87,7 +85,7 @@ const HOSPITAL_ROLES = {
     { key:"CTTech",      label:"CT Tech",    icon:"🖥️", row:2, static:true, phone:"404-696-8984" },
     { key:"Anesthesia",  label:"Anesthesia", icon:"💉", row:2, static:true, phone:"", note:"Check on EHConnect for on-call anesthesiologist", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"TieLines", label:"Tie Line Dialer", icon:"📞", row:3, static:true, phone:"", tieLines:[{shortcut:"6-XXXX", prefix:"404686", display:"404-686-XXXX"}] },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"" , numbers:[{label:"Operator", phone:"404-686-4411"}] },
   ],
   7: [
     { key:"IR",          label:"IR",         icon:"🩺", row:0, hideWeek:true },
@@ -97,7 +95,7 @@ const HOSPITAL_ROLES = {
     { key:"MTC",         label:"MTC",        icon:"🏥", row:2, static:true, phone:"404-616-2226" },
     { key:"Anesthesia",  label:"Anesthesia", icon:"💉", row:2, static:true, phone:"404-852-3253" },
     { key:"TieLines", label:"Tie Line Dialer", icon:"📞", row:3, static:true, phone:"", tieLines:[{shortcut:"5-XXXX", prefix:"404616", display:"404-616-XXXX"},{shortcut:"4-XXXX", prefix:"404489", display:"404-489-XXXX"}] },
-    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"" },
+    { key:"OtherPhones", label:"Other Numbers", icon:"📱", row:3, static:true, phone:"" , numbers:[{label:"Operator", phone:"404-616-1000"}] },
   ],
 };
 
@@ -129,47 +127,57 @@ const parseEUHTab = (text, data) => {
     const id = HOSP_ID[c(r,0)]; const day = c(r,1);
     if (!id || !day || !data[id]) return;
     const isWE = day === "Saturday" || day === "Sunday";
-    data[id].IR[day] = { name:c(r,2), phone:c(r,3), time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
     if (id === 1) {
+      data[id].IR[day] = { name:c(r,2), phone:c(r,3), time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
       data[id].Resident[day] = { name:c(r,4), phone:c(r,5), time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
-      // IH RN — weekends only
-      if (isWE) {
-        const entries = [];
-        if (c(r,6)) entries.push({ name:c(r,6), phone:c(r,7) });
-        if (c(r,8)) entries.push({ name:c(r,8), phone:c(r,9) });
-        if (c(r,10)) entries.push({ name:c(r,10), phone:c(r,11) });
-        data[id].IHRN[day] = { name: entries.map(e=>e.name).join(", ") || "N/A", phone: entries[0]?.phone||"", time:"7:00 AM – 7:30 PM", entries };
+      // IH RN — only if data exists (typically weekends only)
+      const ihrnEntries = [];
+      if (c(r,6)) ihrnEntries.push({ name:c(r,6), phone:c(r,7) });
+      if (c(r,8)) ihrnEntries.push({ name:c(r,8), phone:c(r,9) });
+      if (c(r,10)) ihrnEntries.push({ name:c(r,10), phone:c(r,11) });
+      if (ihrnEntries.length > 0) {
+        data[id].IHRN[day] = { name: ihrnEntries.map(e=>e.name).join(", "), phone: ihrnEntries[0]?.phone||"", time:"7:00 AM – 7:30 PM", entries: ihrnEntries };
       } else {
-        data[id].IHRN[day] = { name:"Weekend Only", phone:"", time:"" };
+        data[id].IHRN[day] = { name:"N/A", phone:"", time:"" };
       }
-      // Primary RN
-      if (isWE) {
-        const dn=c(r,12), dp=c(r,13), nn=c(r,14), np=c(r,15);
-        data[id].PrimaryRN[day] = { name:dn||nn||"N/A", phone:dp||np||"", time:dn?"7:00 AM – 7:00 PM":"7:00 PM – 7:00 AM",
-          ...(dn && nn ? { name2:nn, phone2:np, time2:"7:00 PM – 7:00 AM" } : {}) };
+      // Primary RN — always try both day (12-13) and night (14-15)
+      const dn=c(r,12), dp=c(r,13), nn=c(r,14), np=c(r,15);
+      if (dn && nn) {
+        data[id].PrimaryRN[day] = { name:dn, phone:dp, time:"7:00 AM – 7:00 PM", name2:nn, phone2:np, time2:"7:00 PM – 7:00 AM" };
+      } else if (dn) {
+        data[id].PrimaryRN[day] = { name:dn, phone:dp, time:"7:00 AM – 7:00 PM" };
+      } else if (nn) {
+        data[id].PrimaryRN[day] = { name:nn, phone:np, time:"7:00 PM – 7:00 AM" };
       } else {
-        data[id].PrimaryRN[day] = { name:c(r,14)||"N/A", phone:c(r,15)||"", time:c(r,14)?"7:00 PM – 7:00 AM":"" };
+        data[id].PrimaryRN[day] = { name:"N/A", phone:"", time:"" };
       }
+      // Secondary RN
       data[id].SecondRN[day] = { name:c(r,16)||"N/A", phone:c(r,17)||"", time:c(r,16)?"7:00 PM – 7:00 AM":"" };
-      // IH Tech — weekends only
-      if (isWE) {
-        const entries = [];
-        if (c(r,18)) entries.push({ name:c(r,18), phone:c(r,19) });
-        if (c(r,20)) entries.push({ name:c(r,20), phone:c(r,21) });
-        data[id].IHTech[day] = { name: entries.map(e=>e.name).join(", ") || "N/A", phone: entries[0]?.phone||"", time:"7:00 AM – 7:30 PM", entries };
+      // IH Tech — only if data exists
+      const ihtEntries = [];
+      if (c(r,18)) ihtEntries.push({ name:c(r,18), phone:c(r,19) });
+      if (c(r,20)) ihtEntries.push({ name:c(r,20), phone:c(r,21) });
+      if (ihtEntries.length > 0) {
+        data[id].IHTech[day] = { name: ihtEntries.map(e=>e.name).join(", "), phone: ihtEntries[0]?.phone||"", time:"7:00 AM – 7:30 PM", entries: ihtEntries };
       } else {
-        data[id].IHTech[day] = { name:"Weekend Only", phone:"", time:"" };
+        data[id].IHTech[day] = { name:"N/A", phone:"", time:"" };
       }
-      // Primary Tech
+      // Primary Tech — always try both day (22-23) and night (24-25)
       const isFri = day === "Friday";
-      if (isWE) {
-        const dn=c(r,22), dp=c(r,23), nn=c(r,24), np=c(r,25);
-        data[id].PrimaryTech[day] = { name:dn||nn||"N/A", phone:dp||np||"", time:dn?"7:00 AM – 7:00 PM":"7:00 PM – 7:00 AM",
-          ...(dn && nn ? { name2:nn, phone2:np, time2:"7:00 PM – 7:00 AM" } : {}) };
+      const tdn=c(r,22), tdp=c(r,23), tnn=c(r,24), tnp=c(r,25);
+      if (tdn && tnn) {
+        data[id].PrimaryTech[day] = { name:tdn, phone:tdp, time:"7:00 AM – 7:00 PM", name2:tnn, phone2:tnp, time2:"7:00 PM – 7:00 AM" };
+      } else if (tdn) {
+        data[id].PrimaryTech[day] = { name:tdn, phone:tdp, time:"7:00 AM – 7:00 PM" };
+      } else if (tnn) {
+        data[id].PrimaryTech[day] = { name:tnn, phone:tnp, time:isFri?"3:00 PM – 7:00 AM":"7:00 PM – 7:00 AM" };
       } else {
-        data[id].PrimaryTech[day] = { name:c(r,24)||"N/A", phone:c(r,25)||"", time:c(r,24)?(isFri?"3:00 PM – 7:00 AM":"7:00 PM – 7:00 AM"):"" };
+        data[id].PrimaryTech[day] = { name:"N/A", phone:"", time:"" };
       }
+      // Secondary Tech
       data[id].SecondTech[day] = { name:c(r,26)||"N/A", phone:c(r,27)||"", time:c(r,26)?(isFri?"5:30 PM – 7:00 AM":"7:00 PM – 7:00 AM"):"" };
+    } else {
+      data[id].IR[day] = { name:c(r,2), phone:c(r,3), time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
     }
   });
 };
@@ -305,15 +313,15 @@ function TieLineDialer({ tieLines, T, color }) {
         <div style={{ display:"flex", flexDirection:"column", gap:"4px" }}>
           {tieLines.map((tl, i) => (
             <div key={i} onClick={()=>setSelected(i)} style={{
-              padding:"7px 10px", borderRadius:"8px", textAlign:"center", cursor:"pointer", fontSize:"11px", fontWeight:600, whiteSpace:"nowrap",
+              padding:"9px 14px", borderRadius:"8px", textAlign:"center", cursor:"pointer", fontSize:"13px", fontWeight:600, whiteSpace:"nowrap",
               background: selected === i ? color : T.roleBg,
               color: selected === i ? "#fff" : T.roleText,
               border:`1.5px solid ${selected === i ? color : T.roleBorder}`,
             }}>{tl.shortcut}</div>
           ))}
         </div>
-        <div style={{ flex:"0 0 35%" }}>
-          <input type="tel" maxLength={4} placeholder="4 digits" value={digits}
+        <div style={{ flex: full ? "0 0 35%" : 1 }}>
+          <input type="tel" maxLength={4} placeholder="enter 4 digits" value={digits}
             onChange={e => setDigits(e.target.value.replace(/[^0-9]/g,"").slice(0,4))}
             style={{
               width:"100%", height:"100%", padding:"8px 4px", borderRadius:"8px", fontSize:"18px", fontWeight:600, letterSpacing:"5px",
@@ -322,17 +330,12 @@ function TieLineDialer({ tieLines, T, color }) {
               boxSizing:"border-box",
             }} />
         </div>
-        {full ? (
+        {full && (
           <a href={`tel:${full}`} style={{
             flex:1, display:"flex", alignItems:"center", justifyContent:"center",
             padding:"8px 6px", borderRadius:"8px", background:color, color:"#fff",
             textDecoration:"none", fontWeight:700, fontSize:"12px", textAlign:"center",
           }}>📞 {fullDisplay}</a>
-        ) : (
-          <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center",
-            padding:"8px 6px", borderRadius:"8px", background:T.roleBg, border:`1.5px solid ${T.roleBorder}`,
-            color:T.textMuted, fontSize:"11px", textAlign:"center",
-          }}>{digits.length > 0 ? `${4-digits.length} more` : "Enter 4 digits"}</div>
         )}
       </div>
     </div>
@@ -495,8 +498,11 @@ export default function App() {
   const isWeekendDay = selectedDay === "Saturday" || selectedDay === "Sunday";
   const isFriWeekend = selectedDay === "Friday" || isWeekendDay;
   const visibleRoles = roles.filter(r => {
-    if (r.weekendOnly) return isWeekendDay;
-    if (r.friWeekend) return isFriWeekend;
+    // Data-driven roles: show only if there's data for the selected day
+    if (r.weekendOnly || r.friWeekend) {
+      const entry = schedule?.[selectedHospital]?.[r.key]?.[selectedDay];
+      return entry && entry.name && entry.name !== "N/A" && entry.name !== "Weekend Only";
+    }
     return true;
   });
   // If selected role is hidden (weekendOnly on weekday), switch to first visible
@@ -529,8 +535,8 @@ export default function App() {
 
   return (
     <div style={{ minHeight:"100vh", background:T.detailBg, fontFamily:font, overflowX:"hidden" }}>
-      {/* #8 Header — full name only, no abbreviation */}
-      <div style={{ background:hospital.color, padding:"18px 16px", display:"flex", alignItems:"center", gap:"10px", position:"sticky", top:0, zIndex:100 }}>
+      {/* Fixed header */}
+      <div style={{ background:hospital.color, padding:"18px 16px", display:"flex", alignItems:"center", gap:"10px", position:"fixed", top:0, left:0, right:0, zIndex:100 }}>
         <div onClick={()=>setSelectedHospital(null)} style={{
           padding:"10px 20px", borderRadius:"10px", background:"rgba(255,255,255,0.2)",
           color:"#fff", fontSize:"15px", fontWeight:700, cursor:"pointer", flexShrink:0,
@@ -544,7 +550,7 @@ export default function App() {
         }}>📍 Navigate</a>
       </div>
 
-      <div style={{ padding:"12px 12px 40px", maxWidth:"500px", margin:"0 auto" }}>
+      <div style={{ padding:"68px 12px 40px", maxWidth:"500px", margin:"0 auto" }}>
         {/* #4 DAY selector FIRST — double sized */}
         <div style={{ fontSize:"10px", letterSpacing:"2px", color:T.textMuted, fontWeight:700, marginBottom:"5px", textTransform:"uppercase" }}>Day</div>
         <div style={{ display:"flex", gap:"4px", marginBottom:"14px" }}>
@@ -590,7 +596,7 @@ export default function App() {
         {selectedHospital === 5 && (
           <div style={{ marginBottom:"12px", padding:"12px 14px", borderRadius:"12px", background: dk ? "#1E2A3A" : "#E6EDF8", border:`2px solid ${dk ? "#3D5A7A" : "#8AA0C0"}` }}>
             <div style={{ fontSize:"14px", fontWeight:800, color: dk ? "#C0D0E0" : "#1B3A5C", marginBottom:"5px" }}>📋 EJCH Call Workflow</div>
-            <div style={{ fontSize:"13px", color: dk ? "#B0C0D0" : "#2A3A5A", lineHeight:"1.5", whiteSpace:"pre-line" }}>{"1. Call OCC/RN Supervisor — give appropriate info\n2. Call Anesthesia (if needed)\n3. Enter Procedure order\nOn-call team (RN/IR Tech) will post case utilizing P.O.S."}</div>
+            <div style={{ fontSize:"13px", color: dk ? "#B0C0D0" : "#2A3A5A", lineHeight:"1.5", whiteSpace:"pre-line" }}>{"1. Call RN Supervisor — give appropriate info\n2. Call Anesthesia (if needed)\n3. Enter Procedure order\nOn-call team (RN/IR Tech) will post case utilizing P.O.S."}</div>
           </div>
         )}
 
@@ -635,13 +641,38 @@ export default function App() {
                 }}>🔗 {activeRole.linkLabel || "Open Link"}</a>
               )}
               {activeRole.tieLines && <TieLineDialer tieLines={activeRole.tieLines} T={T} color={hospital.color} />}
+              {activeRole.numbers && activeRole.numbers.map((n, i) => (
+                <div key={i} style={{ paddingTop: i > 0 ? "8px" : "4px", paddingBottom:"8px", borderBottom: `1px solid ${T.dayBorder}` }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
+                    <div style={{ flex:1, fontSize:"15px", fontWeight:700, color:T.text }}>{n.label}</div>
+                    <a href={`tel:${n.phone.replace(/[^0-9]/g,"")}`} style={{
+                      flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:"4px",
+                      padding:"8px 0", borderRadius:"8px", background:hospital.color, color:"#fff",
+                      textDecoration:"none", fontSize:"13px", fontWeight:700,
+                    }}>📞 {n.phone}</a>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : activeRole?.composite ? (
+            (() => {
+              const visibleSubs = activeRole.composite.filter(sub => {
+                const entry = schedule?.[selectedHospital]?.[sub.key]?.[selectedDay];
+                const hasData = entry && entry.name && entry.name !== "N/A" && entry.name !== "Weekend Only";
+                // Show if has data, OR if it has a weekday EHConnect link to offer
+                const showLink = sub.weekdayLink && !isWeekendDay && selectedDay !== "Friday";
+                return hasData || showLink;
+              });
+              if (visibleSubs.length === 0) {
+                return (
+                  <div style={{ borderRadius:"12px", border:`2px dashed ${T.cardBorder}`, background:T.oncallBg, padding:"18px", textAlign:"center" }}>
+                    <div style={{ color:T.textMuted, fontSize:"13px" }}>No one scheduled</div>
+                  </div>
+                );
+              }
+              return (
             <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
-              {activeRole.composite.filter(sub => {
-                if (sub.weekendOnly && !isWeekendDay) return false;
-                return true;
-              }).map((sub, subIdx) => {
+              {visibleSubs.map((sub, subIdx) => {
                 const entry = schedule?.[selectedHospital]?.[sub.key]?.[selectedDay];
                 const hasData = entry && entry.name && entry.name !== "N/A" && entry.name !== "Weekend Only";
                 const boxBg = subIdx % 2 === 0
@@ -650,7 +681,7 @@ export default function App() {
                 return (
                   <div key={sub.key} style={{ borderRadius:"12px", border:`2px solid ${hospital.color}40`, background:boxBg, padding:"10px" }}>
                     <div style={{ fontSize:"12px", fontWeight:800, color:hospital.color, letterSpacing:"1px", textTransform:"uppercase", textAlign:"center", marginBottom:"6px" }}>
-                      {sub.label}
+                      {sub.label}{sub.weekendOnly && entry?.time ? ` — ${entry.time}` : ""}
                     </div>
                     {hasData ? (
                       <>
@@ -709,6 +740,8 @@ export default function App() {
                 );
               })}
             </div>
+              );
+            })()
           ) : todayEntry && todayEntry.name && todayEntry.name !== "N/A" && todayEntry.name !== "Weekend Only" ? (
             <div style={{ borderRadius:"12px", border:`2px solid ${hospital.color}30`, background:T.oncallBg, padding:"12px" }}>
               <div style={{ fontSize:"11px", fontWeight:700, color:hospital.color, letterSpacing:"1px", textTransform:"uppercase", marginBottom:"6px" }}>
