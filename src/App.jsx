@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 
-const BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRtJf4z_ClzZ-2jTowpY36FUPcBGC9RdRp2ebOvYQpoosHZaJ9pSuK3kzsUOG3Ttg/pub";
+const BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSnDG70xuDY-BMAzV9N37CQPTmjF4pp-QNFdn_a4MSUV_xZvtxQMCjE1dy0gHFjQ/pub";
 const CSV_TABS = {
-  euh:      `${BASE}?gid=564239199&single=true&output=csv`,
-  ehhedh:   `${BASE}?gid=9548249&single=true&output=csv`,
-  mtwem:    `${BASE}?gid=1509284481&single=true&output=csv`,
-  esjhejch: `${BASE}?gid=899875644&single=true&output=csv`,
-  gmh:      `${BASE}?gid=1143199981&single=true&output=csv`,
+  euh:      `${BASE}?gid=1790102051&single=true&output=csv`,
+  ehhedh:   `${BASE}?gid=328088899&single=true&output=csv`,
+  mtwem:    `${BASE}?gid=15484901&single=true&output=csv`,
+  esjhejch: `${BASE}?gid=1838887530&single=true&output=csv`,
+  gmh:      `${BASE}?gid=1251835204&single=true&output=csv`,
 };
 
 const DAYS = ["Friday","Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday"];
@@ -44,6 +44,7 @@ const HOSPITAL_ROLES = {
     { key:"Anesthesia",  label:"Anesthesia",        icon:"💉", row:2, static:true, phone:"404-712-7283", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"TieLines",    label:"Tie Line Dialer",   icon:"📞", row:2, static:true, phone:"", tieLines:[{shortcut:"2-XXXX", prefix:"404712", display:"404-712-XXXX"},{shortcut:"8-XXXX", prefix:"404778", display:"404-778-XXXX"}] },
     { key:"OtherPhones", label:"Other Numbers",     icon:"📱", row:2, static:true, phone:"" , numbers:[{label:"Operator", phone:"404-712-2000"}] },
+    { key:"EUH_Schedule", label:"Emailed Schedule", icon:"📋", row:3, static:true, phone:"", image:"/euh-schedule.png" },
   ],
   2: [
     { key:"IR",               label:"IR",                  icon:"🩺", row:0, hideWeek:true },
@@ -105,15 +106,28 @@ const HOSPITAL_ROLES = {
 // ── CSV Parsing ─────────────────────────────────────────────────────────────
 const parseCSVRows = (text) => {
   if (!text) return [];
-  return text.trim().split("\n").map(line => {
-    const result = []; let cur = ""; let inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      if (line[i] === '"') { inQ = !inQ; }
-      else if (line[i] === ',' && !inQ) { result.push(cur.trim()); cur = ""; }
-      else { cur += line[i]; }
-    }
-    result.push(cur.trim()); return result;
-  });
+  const rows = []; let row = []; let cur = ""; let inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') {
+      if (inQ && text[i+1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (ch === ',' && !inQ) { row.push(cur); cur = ""; }
+    else if ((ch === '\n' || ch === '\r') && !inQ) {
+      if (ch === '\r' && text[i+1] === '\n') i++;
+      row.push(cur); rows.push(row); row = []; cur = "";
+    } else cur += ch;
+  }
+  if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+};
+// Find first row index whose any cell contains substring (case-insensitive)
+const findAnchor = (rows, sub, from=0) => {
+  const s = sub.toLowerCase();
+  for (let i = from; i < rows.length; i++) {
+    if (rows[i].some(cell => clean(cell).toLowerCase().includes(s))) return i;
+  }
+  return -1;
 };
 const clean = (s) => (s || "").replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "").trim();
 const getDataRows = (allRows) => {
@@ -124,122 +138,164 @@ const getDataRows = (allRows) => {
 };
 const c = (r, i) => clean(r[i]);
 
-// ─── EUH tab (alone, 28 cols) ───
+// ── Helpers for banner + other numbers (shared) ──
+const parseBanner = (rows, data, id) => {
+  const bi = findAnchor(rows, "SPECIAL INSTRUCTIONS");
+  if (bi >= 0) {
+    // instruction text is in the next non-empty row, col 0
+    for (let r = bi+1; r < Math.min(bi+3, rows.length); r++) {
+      const txt = c(rows[r], 0);
+      if (txt && !txt.toUpperCase().includes("SPECIAL INSTRUCTIONS")) { data[id]._banner = txt; break; }
+    }
+  }
+};
+const parseOtherNumbers = (rows, data, id) => {
+  const oi = findAnchor(rows, "OTHER NUMBERS");
+  if (oi < 0) return;
+  const nums = [];
+  // skip the band row and the Name/Number header row
+  for (let r = oi+2; r < rows.length; r++) {
+    const name = c(rows[r], 0), phone = c(rows[r], 1);
+    if (!name && !phone) continue;
+    if (name.toUpperCase() === "NAME") continue;
+    if (name) nums.push({ label: name, phone });
+  }
+  if (nums.length) data[id]._extraNumbers = nums;
+};
+
+// ─── EUH tab (stacked tables, anchor-based) ───
 const parseEUHTab = (text, data) => {
-  getDataRows(parseCSVRows(text)).forEach(r => {
-    const id = HOSP_ID[c(r,0)]; const day = c(r,1);
-    if (id !== 1 || !day || !data[id]) return;
-    const isWE = day === "Saturday" || day === "Sunday";
-    data[id].IR[day] = { name:c(r,2), phone:c(r,3), time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
-    data[id].Resident[day] = { name:c(r,4), phone:c(r,5), time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
-    // IH RN — show only if data entered (any day)
-    const ihrn = [];
-    if (c(r,6)) ihrn.push({ name:c(r,6), phone:c(r,7) });
-    if (c(r,8)) ihrn.push({ name:c(r,8), phone:c(r,9) });
-    if (c(r,10)) ihrn.push({ name:c(r,10), phone:c(r,11) });
-    data[id].IHRN[day] = ihrn.length ? { name: ihrn.map(e=>e.name).join(", "), phone: ihrn[0]?.phone||"", time:"7:00 AM – 7:30 PM", entries: ihrn } : { name:"N/A", phone:"", time:"" };
-    // Primary RN — day (12-13) + night (14-15)
-    { const dn=c(r,12), dp=c(r,13), nn=c(r,14), np=c(r,15);
-      if (dn && nn) data[id].PrimaryRN[day] = { name:dn, phone:dp, time:"7:00 AM – 7:00 PM", name2:nn, phone2:np, time2:"7:00 PM – 7:00 AM" };
-      else if (dn) data[id].PrimaryRN[day] = { name:dn, phone:dp, time:"7:00 AM – 7:00 PM" };
-      else if (nn) data[id].PrimaryRN[day] = { name:nn, phone:np, time:"7:00 PM – 7:00 AM" };
-      else data[id].PrimaryRN[day] = { name:"N/A", phone:"", time:"" };
+  const rows = parseCSVRows(text); const id = 1; if (!data[id]) return;
+  parseBanner(rows, data, id);
+  parseOtherNumbers(rows, data, id);
+
+  // ② IR + Resident
+  const irAnchor = findAnchor(rows, "IR PHYSICIAN + RESIDENT");
+  if (irAnchor >= 0) {
+    for (let r = irAnchor+2; r < irAnchor+9 && r < rows.length; r++) {
+      const day = c(rows[r],1); if (!DAYS.includes(day)) continue;
+      const isWE = day==="Saturday"||day==="Sunday";
+      data[id].IR[day] = { name:c(rows[r],2), phone:c(rows[r],3), time: isWE?"All Day":"5:00 PM – 7:00 AM" };
+      data[id].Resident[day] = { name:c(rows[r],4), phone:c(rows[r],5), time: isWE?"All Day":"5:00 PM – 7:00 AM" };
     }
-    data[id].SecondRN[day] = { name:c(r,16)||"N/A", phone:c(r,17)||"", time:c(r,16)?"7:00 PM – 7:00 AM":"" };
-    // IH Tech
-    const iht = [];
-    if (c(r,18)) iht.push({ name:c(r,18), phone:c(r,19) });
-    if (c(r,20)) iht.push({ name:c(r,20), phone:c(r,21) });
-    data[id].IHTech[day] = iht.length ? { name: iht.map(e=>e.name).join(", "), phone: iht[0]?.phone||"", time:"7:00 AM – 7:30 PM", entries: iht } : { name:"N/A", phone:"", time:"" };
-    // Primary Tech — day (22-23) + night (24-25)
-    const isFri = day === "Friday";
-    { const dn=c(r,22), dp=c(r,23), nn=c(r,24), np=c(r,25);
-      if (dn && nn) data[id].PrimaryTech[day] = { name:dn, phone:dp, time:"7:00 AM – 7:00 PM", name2:nn, phone2:np, time2:"7:00 PM – 7:00 AM" };
-      else if (dn) data[id].PrimaryTech[day] = { name:dn, phone:dp, time:"7:00 AM – 7:00 PM" };
-      else if (nn) data[id].PrimaryTech[day] = { name:nn, phone:np, time:isFri?"3:00 PM – 7:00 AM":"7:00 PM – 7:00 AM" };
-      else data[id].PrimaryTech[day] = { name:"N/A", phone:"", time:"" };
+  }
+
+  // ③ RN Weekend / ④ Tech Weekend
+  const parseWeekend = (anchorText, nIH, keyIH, keyPrimary, keySecond) => {
+    const a = findAnchor(rows, anchorText); if (a < 0) return;
+    for (let r = a+2; r < a+4 && r < rows.length; r++) {
+      const day = c(rows[r],1); if (day!=="Saturday" && day!=="Sunday") continue;
+      // layout: col0 HOSP, col1 DAY, then per slot: Name, Phone
+      let col = 2; const ih = [];
+      for (let k=0;k<nIH;k++){ const nm=c(rows[r],col), ph=c(rows[r],col+1); if(nm) ih.push({name:nm,phone:ph}); col+=2; }
+      data[id][keyIH][day] = ih.length ? { name:ih.map(e=>e.name).join(", "), phone:ih[0]?.phone||"", time:"7:00 AM – 7:30 PM", entries:ih } : { name:"N/A", phone:"", time:"" };
+      const pdN=c(rows[r],col),pdP=c(rows[r],col+1); col+=2;
+      const pnN=c(rows[r],col),pnP=c(rows[r],col+1); col+=2;
+      if (pdN && pnN) data[id][keyPrimary][day] = { name:pdN, phone:pdP, time:"7:00 AM – 7:00 PM", name2:pnN, phone2:pnP, time2:"7:00 PM – 7:00 AM" };
+      else if (pdN) data[id][keyPrimary][day] = { name:pdN, phone:pdP, time:"7:00 AM – 7:00 PM" };
+      else if (pnN) data[id][keyPrimary][day] = { name:pnN, phone:pnP, time:"7:00 PM – 7:00 AM" };
+      else data[id][keyPrimary][day] = { name:"N/A", phone:"", time:"" };
+      const s2N=c(rows[r],col),s2P=c(rows[r],col+1);
+      data[id][keySecond][day] = s2N ? { name:s2N, phone:s2P, time:"7:00 PM – 7:00 AM" } : { name:"N/A", phone:"", time:"" };
     }
-    data[id].SecondTech[day] = { name:c(r,26)||"N/A", phone:c(r,27)||"", time:c(r,26)?(isFri?"5:30 PM – 7:00 AM":"7:00 PM – 7:00 AM"):"" };
-  });
+  };
+  parseWeekend("IR RN — WEEKEND", 3, "IHRN", "PrimaryRN", "SecondRN");
+  parseWeekend("IR TECH — WEEKEND", 2, "IHTech", "PrimaryTech", "SecondTech");
+
+  // ⑤ RN Weekday / ⑥ Tech Weekday — RN1/2/3 (Name,Time,Phone), Mon-Fri
+  const parseWeekday = (anchorText, keyPrimary) => {
+    const a = findAnchor(rows, anchorText); if (a < 0) return;
+    for (let r = a+2; r < a+8 && r < rows.length; r++) {
+      const day = c(rows[r],1); if (!["Monday","Tuesday","Wednesday","Thursday","Friday"].includes(day)) continue;
+      const slots = [];
+      for (let k=0;k<3;k++){ const base=2+k*3; const nm=c(rows[r],base), tm=c(rows[r],base+1), ph=c(rows[r],base+2);
+        if (nm && tm) slots.push({ name:nm, time:tm, phone:ph }); }
+      // weekday people go into the Primary sub-role as a list (In-House/2nd empty on weekdays)
+      data[id][keyPrimary][day] = slots.length ? { name:slots.map(s=>s.name).join(", "), phone:slots[0]?.phone||"", entries:slots } : { name:"N/A", phone:"", time:"" };
+    }
+  };
+  parseWeekday("IR RN — WEEKDAY", "PrimaryRN");
+  parseWeekday("IR TECH — WEEKDAY", "PrimaryTech");
 };
 
-// ─── EHH-EDH tab (6 cols: HOSP,DAY,IR,IRPhone,NursingSup,RadSup,Anesthesia) ───
-// cols: 0=HOSP 1=DAY 2=IR 3=IRPhone 4=NursingSup 5=RadSup 6=Anesthesia
+// ─── EHH-EDH tab (two tables) ───
 const parseEHHEDHTab = (text, data) => {
-  getDataRows(parseCSVRows(text)).forEach(r => {
+  const rows = parseCSVRows(text);
+  // Banner + other numbers apply to both EHH(2) and EDH(3) — store on each
+  const bi = findAnchor(rows, "SPECIAL INSTRUCTIONS");
+  let banner = "";
+  if (bi>=0) for (let r=bi+1;r<Math.min(bi+3,rows.length);r++){ const t=c(rows[r],0); if(t&&!t.toUpperCase().includes("SPECIAL INSTRUCTIONS")){banner=t;break;} }
+  const oNums = []; const oi = findAnchor(rows, "OTHER NUMBERS");
+  if (oi>=0) for (let r=oi+2;r<rows.length;r++){ const nm=c(rows[r],0),ph=c(rows[r],1); if(nm&&nm.toUpperCase()!=="NAME") oNums.push({label:nm,phone:ph}); }
+  [2,3].forEach(hid => { if(data[hid]){ if(banner) data[hid]._banner=banner; if(oNums.length) data[hid]._extraNumbers=oNums; }});
+  // Schedule rows: read by hospital name in col 0
+  getDataRows(rows).forEach(r => {
     const id = HOSP_ID[c(r,0)]; const day = c(r,1);
-    if (!id || !day || !data[id] || (id !== 2 && id !== 3)) return;
-    const isWE = day === "Saturday" || day === "Sunday";
-    data[id].IR[day] = { name:c(r,2), phone:c(r,3), time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
-    // Store editable supervisor + anesthesia numbers on the day entry
-    data[id]._nursingSup = data[id]._nursingSup || {};
-    data[id]._radSup = data[id]._radSup || {};
-    data[id]._anes = data[id]._anes || {};
-    if (c(r,4)) data[id]._nursingSup[day] = c(r,4);
-    if (c(r,5)) data[id]._radSup[day] = c(r,5);
-    if (c(r,6)) data[id]._anes[day] = c(r,6);
+    if ((id!==2 && id!==3) || !DAYS.includes(day) || !data[id]) return;
+    const isWE = day==="Saturday"||day==="Sunday";
+    data[id].IR[day] = { name:c(r,2), phone:c(r,3), time: isWE?"All Day":"5:00 PM – 7:00 AM" };
+    data[id]._nursingSup = data[id]._nursingSup||{}; data[id]._radSup = data[id]._radSup||{}; data[id]._anes = data[id]._anes||{};
+    if (c(r,4)) data[id]._nursingSup[day]=c(r,4);
+    if (c(r,5)) data[id]._radSup[day]=c(r,5);
+    if (c(r,6)) data[id]._anes[day]=c(r,6);
   });
 };
 
-// ─── MTWEM tab (alone, 10 cols) ───
+// ─── MTWEM tab ───
 const parseMTWEMTab = (text, data) => {
-  getDataRows(parseCSVRows(text)).forEach(r => {
-    const rawHosp = clean(r[0]).replace("MTWEM","MT/WEM");
-    const id = HOSP_ID[rawHosp]; const day = c(r,1);
-    if (id !== 6 || !day || !data[id]) return;
-    const isWE = day === "Saturday" || day === "Sunday";
-    data[id].IR[day] = { name:c(r,2), phone:c(r,3), time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
-    data[id].Resident[day] = { name:c(r,4)||"N/A", phone:c(r,5)||"", time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
-    const parseSplit = (raw, phone) => {
-      if (!raw) return { name:"N/A", phone:"", time:"On Call" };
-      if (raw.includes("/")) {
-        const parts = raw.split("/").map(s => s.trim());
-        const parseNameTime = (s) => {
-          const m = s.match(/^(.+?)\s+(\d+[ap]?m?\s*-\s*\d+[ap]?m?)$/i);
-          return m ? { name: m[1].trim(), time: m[2].trim() } : { name: s, time: "On Call" };
-        };
-        const p1 = parseNameTime(parts[0]), p2 = parseNameTime(parts[1]);
-        return { name: p1.name, phone: phone, time: p1.time, name2: p2.name, phone2: "", time2: p2.time };
-      }
-      return { name: raw, phone: phone, time: "On Call" };
-    };
-    data[id].Technologist[day] = parseSplit(c(r,6), c(r,7));
-    data[id].RN[day] = parseSplit(c(r,8), c(r,9));
+  const rows = parseCSVRows(text); const id=6; if(!data[id]) return;
+  parseBanner(rows,data,id); parseOtherNumbers(rows,data,id);
+  getDataRows(rows).forEach(r => {
+    const raw = clean(r[0]).replace("MTWEM","MT/WEM"); if (HOSP_ID[raw]!==6) return;
+    const day=c(r,1); if(!DAYS.includes(day)) return;
+    const isWE=day==="Saturday"||day==="Sunday";
+    data[id].IR[day]={name:c(r,2),phone:c(r,3),time:isWE?"All Day":"5:00 PM – 7:00 AM"};
+    data[id].Resident[day]={name:c(r,4)||"N/A",phone:c(r,5)||"",time:isWE?"All Day":"5:00 PM – 7:00 AM"};
+    const splt=(raw2,phone)=>{ if(!raw2) return {name:"N/A",phone:"",time:"On Call"};
+      if(raw2.includes("/")){ const parts=raw2.split("/").map(s=>s.trim());
+        const pnt=(s)=>{const m=s.match(/^(.+?)\s+(\d+[ap]?m?\s*-\s*\d+[ap]?m?)$/i); return m?{name:m[1].trim(),time:m[2].trim()}:{name:s,time:"On Call"};};
+        const p1=pnt(parts[0]),p2=pnt(parts[1]); return {name:p1.name,phone,time:p1.time,name2:p2.name,phone2:"",time2:p2.time}; }
+      return {name:raw2,phone,time:"On Call"}; };
+    data[id].Technologist[day]=splt(c(r,6),c(r,7));
+    data[id].RN[day]=splt(c(r,8),c(r,9));
   });
 };
 
-// ─── ESJH-EJCH tab (10 cols + OCC col 10, POS col 11) ───
-// cols: 0=HOSP 1=DAY 2=IR 3=IRPhone 4=Res 5=ResPhone 6=Tech 7=TechPhone 8=RN 9=RNPhone 10=OCC 11=POS
+// ─── ESJH-EJCH tab (two tables; EJCH old format IR/OCC/POS) ───
 const parseESJHEJCHTab = (text, data) => {
-  getDataRows(parseCSVRows(text)).forEach(r => {
-    const id = HOSP_ID[c(r,0)]; const day = c(r,1);
-    if (!id || !day || !data[id] || (id !== 4 && id !== 5)) return;
-    const isWE = day === "Saturday" || day === "Sunday";
-    data[id].IR[day] = { name:c(r,2), phone:c(r,3), time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
-    if (id === 4) {
-      // ESJH: Tech + RN from sheet
-      data[id].Technologist[day] = { name:c(r,6)||"N/A", phone:c(r,7)||"", time:"On Call" };
-      data[id].RN[day] = { name:c(r,8)||"N/A", phone:c(r,9)||"", time:"On Call" };
+  const rows = parseCSVRows(text);
+  const bi=findAnchor(rows,"SPECIAL INSTRUCTIONS"); let banner="";
+  if(bi>=0) for(let r=bi+1;r<Math.min(bi+3,rows.length);r++){const t=c(rows[r],0); if(t&&!t.toUpperCase().includes("SPECIAL INSTRUCTIONS")){banner=t;break;}}
+  const oNums=[]; const oi=findAnchor(rows,"OTHER NUMBERS");
+  if(oi>=0) for(let r=oi+2;r<rows.length;r++){const nm=c(rows[r],0),ph=c(rows[r],1); if(nm&&nm.toUpperCase()!=="NAME") oNums.push({label:nm,phone:ph});}
+  [4,5].forEach(hid=>{if(data[hid]){if(banner)data[hid]._banner=banner; if(oNums.length)data[hid]._extraNumbers=oNums;}});
+  getDataRows(rows).forEach(r => {
+    const id=HOSP_ID[c(r,0)]; const day=c(r,1);
+    if((id!==4&&id!==5)||!DAYS.includes(day)||!data[id]) return;
+    const isWE=day==="Saturday"||day==="Sunday";
+    data[id].IR[day]={name:c(r,2),phone:c(r,3),time:isWE?"All Day":"5:00 PM – 7:00 AM"};
+    if(id===4){ // ESJH full: Tech col6/7, RN col8/9
+      data[id].Technologist[day]={name:c(r,6)||"N/A",phone:c(r,7)||"",time:"On Call"};
+      data[id].RN[day]={name:c(r,8)||"N/A",phone:c(r,9)||"",time:"On Call"};
     }
-    if (id === 5) {
-      // EJCH: OCC (col 10) + POS (col 11) editable numbers
-      data[id]._occ = data[id]._occ || {};
-      data[id]._pos = data[id]._pos || {};
-      if (c(r,10)) data[id]._occ[day] = c(r,10);
-      if (c(r,11)) data[id]._pos[day] = c(r,11);
+    if(id===5){ // EJCH old format: OCC col4, POS col5
+      data[id]._occ=data[id]._occ||{}; data[id]._pos=data[id]._pos||{};
+      if(c(r,4)) data[id]._occ[day]=c(r,4);
+      if(c(r,5)) data[id]._pos[day]=c(r,5);
     }
   });
 };
 
 const parseGMHTab = (text, data) => {
-  getDataRows(parseCSVRows(text)).forEach(r => {
-    const id = HOSP_ID[c(r,0)]; const day = c(r,1);
-    if (id !== 7 || !day || !data[id]) return;
-    const isWE = day === "Saturday" || day === "Sunday";
-    data[id].IR[day]          = { name:c(r,2), phone:c(r,3), time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
-    data[id].Resident[day]    = { name:c(r,4)||"N/A", phone:c(r,5)||"", time: isWE ? "All Day" : "5:00 PM – 7:00 AM" };
-    data[id].Technologist[day]= { name:c(r,6)||"N/A", phone:c(r,7)||"", time:"On Call" };
-    data[id].RN[day]          = { name:c(r,8)||"N/A", phone:c(r,9)||"", time:"On Call" };
+  const rows = parseCSVRows(text); const id=7; if(!data[id]) return;
+  parseBanner(rows,data,id); parseOtherNumbers(rows,data,id);
+  getDataRows(rows).forEach(r => {
+    if (HOSP_ID[c(r,0)]!==7) return; const day=c(r,1); if(!DAYS.includes(day)) return;
+    const isWE=day==="Saturday"||day==="Sunday";
+    data[id].IR[day]={name:c(r,2),phone:c(r,3),time:isWE?"All Day":"5:00 PM – 7:00 AM"};
+    data[id].Resident[day]={name:c(r,4)||"N/A",phone:c(r,5)||"",time:isWE?"All Day":"5:00 PM – 7:00 AM"};
+    data[id].Technologist[day]={name:c(r,6)||"N/A",phone:c(r,7)||"",time:"On Call"};
+    data[id].RN[day]={name:c(r,8)||"N/A",phone:c(r,9)||"",time:"On Call"};
   });
 };
 
@@ -577,6 +633,17 @@ export default function App() {
       <div style={{ padding:"68px 12px 40px", maxWidth:"500px", margin:"0 auto" }}>
         {/* #4 DAY selector FIRST — double sized */}
         <div style={{ fontSize:"10px", letterSpacing:"2px", color:T.textMuted, fontWeight:700, marginBottom:"5px", textTransform:"uppercase" }}>Day</div>
+        {schedule?.[selectedHospital]?._banner && (
+          <div style={{ marginBottom:"14px", padding:"12px 14px", borderRadius:"12px",
+            background: dk ? "#3A2E14" : "#FFF7E0", border:`2px solid ${dk ? "#B8892E" : "#E0B84A"}` }}>
+            <div style={{ fontSize:"10px", fontWeight:800, color: dk ? "#E0B84A" : "#9A6E1A", letterSpacing:"1px", textTransform:"uppercase", marginBottom:"4px" }}>
+              📢 Special Instructions
+            </div>
+            <div style={{ fontSize:"14px", color: dk ? "#F0E4C4" : "#5A4A1A", lineHeight:1.5, whiteSpace:"pre-line" }}>
+              {schedule[selectedHospital]._banner}
+            </div>
+          </div>
+        )}
         <div style={{ display:"flex", gap:"4px", marginBottom:"14px" }}>
           {DAYS.map((day,i) => {
             const d = weekDates[i]; const act = selectedDay === day;
@@ -667,7 +734,7 @@ export default function App() {
                 }}>🔗 {activeRole.linkLabel || "Open Link"}</a>
               )}
               {activeRole.tieLines && <TieLineDialer tieLines={activeRole.tieLines} T={T} color={hospital.color} />}
-              {activeRole.numbers && activeRole.numbers.map((n, i) => (
+              {activeRole.numbers && [...activeRole.numbers, ...(schedule?.[selectedHospital]?._extraNumbers || [])].map((n, i) => (
                 <div key={i} style={{ paddingTop: i > 0 ? "8px" : "4px", paddingBottom:"8px", borderBottom: `1px solid ${T.dayBorder}` }}>
                   <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
                     <div style={{ flex:1, fontSize:"15px", fontWeight:700, color:T.text }}>{n.label}</div>
@@ -717,6 +784,7 @@ export default function App() {
                               <div key={ei} style={{ padding:"6px 0", borderTop: ei > 0 ? `1px solid ${T.dayBorder}` : "none" }}>
                                 <div style={{ fontSize:"14px", fontWeight:600, color:T.text }}>
                                   {e.name}
+                                  {e.time ? <span style={{ fontWeight:500, fontSize:"11px", color:T.textSub }}> · {e.time}</span> : ""}
                                   {e.phone ? <span style={{ fontWeight:500, fontSize:"12px", color:T.textSub }}> · 📞 {e.phone}</span> : ""}
                                 </div>
                                 <PhoneButtons phone={e.phone} clr={hospital.color} />
