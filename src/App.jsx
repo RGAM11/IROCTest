@@ -431,6 +431,22 @@ export default function App() {
 
   useEffect(() => { fetchSchedule().then(d => setSchedule(d)).finally(() => setLoading(false)); }, []);
 
+  // Android/iOS back button: navigate within app instead of exiting.
+  // When a hospital is opened we push a history entry; the phone back button
+  // fires popstate, which we intercept to return to the hospital list.
+  useEffect(() => {
+    const onPop = () => { setSelectedHospital(null); };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  // Open/close a hospital through history so hardware back works.
+  const closeHospital = () => {
+    // Go back in history if we're on a pushed entry; else just clear.
+    if (window.history.state && window.history.state.hospital) window.history.back();
+    else setSelectedHospital(null);
+  };
+
   // Update browser status bar color to match selected hospital
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');
@@ -455,6 +471,7 @@ export default function App() {
   };
 
   const handleSelectHospital = (id) => {
+    window.history.pushState({ hospital: id }, "");
     setSelectedHospital(id);
     setSelectedRole((HOSPITAL_ROLES[id]||[])[0]?.key || null);
     setSelectedDay(todayName);
@@ -616,7 +633,7 @@ export default function App() {
     <div style={{ minHeight:"100vh", background:T.detailBg, fontFamily:font, overflowX:"hidden" }}>
       {/* Fixed header */}
       <div style={{ background:hospital.color, padding:"18px 16px", display:"flex", alignItems:"center", gap:"10px", position:"fixed", top:0, left:0, right:0, zIndex:100 }}>
-        <div onClick={()=>setSelectedHospital(null)} style={{
+        <div onClick={closeHospital} style={{
           padding:"10px 20px", borderRadius:"10px", background:"rgba(255,255,255,0.2)",
           color:"#fff", fontSize:"15px", fontWeight:700, cursor:"pointer", flexShrink:0,
         }}>← Back</div>
