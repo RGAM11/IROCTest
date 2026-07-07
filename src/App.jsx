@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 
-const BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSnDG70xuDY-BMAzV9N37CQPTmjF4pp-QNFdn_a4MSUV_xZvtxQMCjE1dy0gHFjQ/pub";
+const BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8WCngGjo-orcDfBB2hyCmcljMSwMPh3lEE243hQ0mnDrTojxCUPxwhgNcgdjdHg/pub";
 const CSV_TABS = {
-  euh:      `${BASE}?gid=1790102051&single=true&output=csv`,
-  ehhedh:   `${BASE}?gid=328088899&single=true&output=csv`,
-  mtwem:    `${BASE}?gid=15484901&single=true&output=csv`,
-  esjhejch: `${BASE}?gid=1838887530&single=true&output=csv`,
-  gmh:      `${BASE}?gid=1251835204&single=true&output=csv`,
+  euh:      `${BASE}?gid=775592937&single=true&output=csv`,
+  ehhedh:   `${BASE}?gid=1534156653&single=true&output=csv`,
+  mtwem:    `${BASE}?gid=1603761457&single=true&output=csv`,
+  esjhejch: `${BASE}?gid=577995959&single=true&output=csv`,
+  gmh:      `${BASE}?gid=1818891382&single=true&output=csv`,
 };
 
 const DAYS = ["Friday","Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday"];
@@ -44,7 +44,6 @@ const HOSPITAL_ROLES = {
     { key:"Anesthesia",  label:"Anesthesia",        icon:"💉", row:2, static:true, phone:"404-712-7283", note:"Look up on EHConnect", link:"https://ehconnect.eushc.org/", linkLabel:"Open EHConnect" },
     { key:"TieLines",    label:"Tie Line Dialer",   icon:"📞", row:2, static:true, phone:"", tieLines:[{shortcut:"2-XXXX", prefix:"404712", display:"404-712-XXXX"},{shortcut:"8-XXXX", prefix:"404778", display:"404-778-XXXX"}] },
     { key:"OtherPhones", label:"Other Numbers",     icon:"📱", row:2, static:true, phone:"" , numbers:[{label:"Operator", phone:"404-712-2000"}] },
-    { key:"EUH_Schedule", label:"Emailed Schedule", icon:"📋", row:3, static:true, phone:"", image:"/euh-schedule.png" },
   ],
   2: [
     { key:"IR",               label:"IR",                  icon:"🩺", row:0, hideWeek:true },
@@ -208,7 +207,7 @@ const parseEUHTab = (text, data) => {
     for (let r = a+2; r < a+8 && r < rows.length; r++) {
       const day = c(rows[r],1); if (!["Monday","Tuesday","Wednesday","Thursday","Friday"].includes(day)) continue;
       const slots = [];
-      for (let k=0;k<3;k++){ const base=2+k*3; const nm=c(rows[r],base), tm=c(rows[r],base+1), ph=c(rows[r],base+2);
+      for (let k=0;k<4;k++){ const base=2+k*3; const nm=c(rows[r],base), tm=c(rows[r],base+1), ph=c(rows[r],base+2);
         if (nm && tm) slots.push({ name:nm, time:tm, phone:ph }); }
       // weekday people go into the Primary sub-role as a list (In-House/2nd empty on weekdays)
       data[id][keyPrimary][day] = slots.length ? { name:slots.map(s=>s.name).join(", "), phone:slots[0]?.phone||"", entries:slots } : { name:"N/A", phone:"", time:"" };
@@ -774,7 +773,7 @@ export default function App() {
                 return (
                   <div key={sub.key} style={{ borderRadius:"12px", border:`2px solid ${hospital.color}40`, background:boxBg, padding:"10px" }}>
                     <div style={{ fontSize:"12px", fontWeight:800, color:hospital.color, letterSpacing:"1px", textTransform:"uppercase", textAlign:"center", marginBottom:"6px" }}>
-                      {sub.label}{sub.weekendOnly && entry?.time ? ` — ${entry.time}` : ""}
+                      {(!isWeekendDay && sub.label.startsWith("Primary ")) ? sub.label.replace("Primary ", "") : sub.label}{sub.weekendOnly && entry?.time ? ` — ${entry.time}` : ""}
                     </div>
                     {hasData ? (
                       <>
