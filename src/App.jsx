@@ -9,6 +9,10 @@ const CSV_TABS = {
   gmh:      `${BASE}?gid=1818891382&single=true&output=csv`,
 };
 
+// Google Apps Script endpoint that emails suggestions to radsgam@gmail.com.
+// Deploy the script (see instructions) and paste its Web App URL here:
+const SUGGESTION_ENDPOINT = "https://script.google.com/macros/s/AKfycbzRp_C5rwTJJ4262-Vr5JkMrxDvZTXHkBB3dAUXy8pco2JH5igv4gXrhXoblRoCHjYD1A/exec";
+
 const DAYS = ["Friday","Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday"];
 
 const HOSPITALS = [
@@ -426,7 +430,8 @@ export default function App() {
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedDay, setSelectedDay] = useState(getDayName());
-  const [showOE, setShowOE] = useState(false);
+  const [suggestion, setSuggestion] = useState("");
+  const [sugStatus, setSugStatus] = useState("idle"); // idle | sending | sent | error
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState("light");
 
@@ -567,31 +572,47 @@ export default function App() {
                 padding:"14px 12px", borderRadius:"12px", textDecoration:"none", marginTop:"8px",
                 background:"linear-gradient(135deg, #2B5797 0%, #1A3A6A 100%)", color:"#fff", fontWeight:700, fontSize:"13px",
               }}><span>☁️</span> OneDrive - Call Sign Out</a>
-              <a href="https://www.sirweb.org/in-practice/guidelines-and-statements/" target="_blank" rel="noopener noreferrer" style={{
-                display:"flex", alignItems:"center", justifyContent:"center", gap:"5px",
-                padding:"14px 12px", borderRadius:"12px", textDecoration:"none", marginTop:"8px",
-                background:"linear-gradient(135deg, #3E8E7E 0%, #2A6A5C 100%)", color:"#fff", fontWeight:700, fontSize:"13px",
-              }}><span>📘</span> SIR Guidelines</a>
-              <div onClick={()=>setShowOE(true)} style={{
-                display:"flex", alignItems:"center", justifyContent:"center", gap:"5px", cursor:"pointer",
-                padding:"14px 12px", borderRadius:"12px", marginTop:"8px",
-                background:"linear-gradient(135deg, #F0913A 0%, #D9701A 100%)", color:"#fff", fontWeight:700, fontSize:"13px",
-              }}><span>🔎</span> OpenEvidence</div>
             </div>
 
-            {showOE && (
-              <div style={{ position:"fixed", inset:0, zIndex:1000, background:"#0D1B2A", display:"flex", flexDirection:"column" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:"8px", padding:"12px 14px", background:"#D9701A" }}>
-                  <div onClick={()=>setShowOE(false)} style={{ padding:"8px 14px", borderRadius:"8px", background:"#FFFFFF33", color:"#fff", fontWeight:700, fontSize:"13px", cursor:"pointer" }}>✕ Close</div>
-                  <div style={{ flex:1, textAlign:"center", color:"#fff", fontWeight:700, fontSize:"14px" }}>OpenEvidence</div>
-                  <a href="https://www.openevidence.com" target="_blank" rel="noopener noreferrer" style={{ padding:"8px 14px", borderRadius:"8px", background:"#FFFFFF33", color:"#fff", fontWeight:700, fontSize:"13px", textDecoration:"none" }}>↗ Browser</a>
-                </div>
-                <div style={{ padding:"8px 14px", background:"#132033", color:"#8AA0B8", fontSize:"11px", textAlign:"center" }}>
-                  If this stays blank, OpenEvidence blocks embedding — tap "↗ Browser" above.
-                </div>
-                <iframe src="https://www.openevidence.com" title="OpenEvidence" style={{ flex:1, width:"100%", border:"none", background:"#fff" }} />
+            {/* Suggestion box */}
+            <div style={{ marginTop:"26px", background: dk ? "#132033" : "#FFFFFF", border:`2px solid ${T.cardBorder}`, borderRadius:"14px", padding:"14px" }}>
+              <div style={{ fontSize:"10px", letterSpacing:"2px", color:T.quickLinkText, fontWeight:700, textTransform:"uppercase", textAlign:"center", marginBottom:"8px" }}>
+                💡 Suggest an Improvement
               </div>
-            )}
+              <textarea
+                value={suggestion}
+                onChange={(e)=>{ setSuggestion(e.target.value); if (sugStatus==="sent"||sugStatus==="error") setSugStatus("idle"); }}
+                placeholder="Idea, issue, or feature request…"
+                rows={3}
+                style={{ width:"100%", boxSizing:"border-box", padding:"10px", borderRadius:"10px", resize:"vertical",
+                  border:`1.5px solid ${T.cardBorder}`, background: dk ? "#0F1D30" : "#F7FAFC",
+                  color: dk ? "#E2E8F0" : "#1E293B", fontSize:"14px", fontFamily:"inherit" }}
+              />
+              <div
+                onClick={async ()=>{
+                  if (!suggestion.trim() || sugStatus==="sending") return;
+                  setSugStatus("sending");
+                  try {
+                    await fetch(SUGGESTION_ENDPOINT, {
+                      method:"POST", mode:"no-cors",
+                      headers:{ "Content-Type":"text/plain" },
+                      body: JSON.stringify({ suggestion: suggestion.trim(), sentAt: new Date().toLocaleString() }),
+                    });
+                    setSugStatus("sent"); setSuggestion("");
+                  } catch(e) { setSugStatus("error"); }
+                }}
+                style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"6px", marginTop:"8px",
+                  padding:"12px", borderRadius:"10px", fontWeight:700, fontSize:"13px",
+                  background: sugStatus==="sent" ? "#2A9D5A" : (suggestion.trim() ? "linear-gradient(135deg, #3D7A8F 0%, #2B5A6C 100%)" : (dk ? "#1A2A3F" : "#E2E8F0")),
+                  color: (suggestion.trim()||sugStatus==="sent") ? "#fff" : T.textMuted,
+                  cursor: suggestion.trim() ? "pointer" : "default" }}
+              >
+                {sugStatus==="sending" ? "Sending…" : sugStatus==="sent" ? "✓ Sent — thank you!" : sugStatus==="error" ? "Couldn't send — tap to retry" : "📨 Send Suggestion"}
+              </div>
+              <div style={{ fontSize:"10px", color:T.textMuted, textAlign:"center", marginTop:"6px" }}>
+                Sends anonymously, right from the app
+              </div>
+            </div>
 
             <div style={{ marginTop:"40px", display:"flex", justifyContent:"center", gap:"10px" }}>
               <div onClick={()=>setTheme("light")} style={{
