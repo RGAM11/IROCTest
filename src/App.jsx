@@ -426,6 +426,7 @@ export default function App() {
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedDay, setSelectedDay] = useState(getDayName());
+  const [showOE, setShowOE] = useState(false);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState("light");
 
@@ -571,12 +572,26 @@ export default function App() {
                 padding:"14px 12px", borderRadius:"12px", textDecoration:"none", marginTop:"8px",
                 background:"linear-gradient(135deg, #3E8E7E 0%, #2A6A5C 100%)", color:"#fff", fontWeight:700, fontSize:"13px",
               }}><span>📘</span> SIR Guidelines</a>
-              <a href="https://www.openevidence.com" target="_blank" rel="noopener noreferrer" style={{
-                display:"flex", alignItems:"center", justifyContent:"center", gap:"5px",
-                padding:"14px 12px", borderRadius:"12px", textDecoration:"none", marginTop:"8px",
+              <div onClick={()=>setShowOE(true)} style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:"5px", cursor:"pointer",
+                padding:"14px 12px", borderRadius:"12px", marginTop:"8px",
                 background:"linear-gradient(135deg, #F0913A 0%, #D9701A 100%)", color:"#fff", fontWeight:700, fontSize:"13px",
-              }}><span>🔎</span> OpenEvidence</a>
+              }}><span>🔎</span> OpenEvidence</div>
             </div>
+
+            {showOE && (
+              <div style={{ position:"fixed", inset:0, zIndex:1000, background:"#0D1B2A", display:"flex", flexDirection:"column" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:"8px", padding:"12px 14px", background:"#D9701A" }}>
+                  <div onClick={()=>setShowOE(false)} style={{ padding:"8px 14px", borderRadius:"8px", background:"#FFFFFF33", color:"#fff", fontWeight:700, fontSize:"13px", cursor:"pointer" }}>✕ Close</div>
+                  <div style={{ flex:1, textAlign:"center", color:"#fff", fontWeight:700, fontSize:"14px" }}>OpenEvidence</div>
+                  <a href="https://www.openevidence.com" target="_blank" rel="noopener noreferrer" style={{ padding:"8px 14px", borderRadius:"8px", background:"#FFFFFF33", color:"#fff", fontWeight:700, fontSize:"13px", textDecoration:"none" }}>↗ Browser</a>
+                </div>
+                <div style={{ padding:"8px 14px", background:"#132033", color:"#8AA0B8", fontSize:"11px", textAlign:"center" }}>
+                  If this stays blank, OpenEvidence blocks embedding — tap "↗ Browser" above.
+                </div>
+                <iframe src="https://www.openevidence.com" title="OpenEvidence" style={{ flex:1, width:"100%", border:"none", background:"#fff" }} />
+              </div>
+            )}
 
             <div style={{ marginTop:"40px", display:"flex", justifyContent:"center", gap:"10px" }}>
               <div onClick={()=>setTheme("light")} style={{
