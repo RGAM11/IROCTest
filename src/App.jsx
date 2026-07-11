@@ -566,6 +566,16 @@ export default function App() {
                 padding:"14px 12px", borderRadius:"12px", textDecoration:"none", marginTop:"8px",
                 background:"linear-gradient(135deg, #2B5797 0%, #1A3A6A 100%)", color:"#fff", fontWeight:700, fontSize:"13px",
               }}><span>☁️</span> OneDrive - Call Sign Out</a>
+              <a href="https://www.sirweb.org/in-practice/guidelines-and-statements/" target="_blank" rel="noopener noreferrer" style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:"5px",
+                padding:"14px 12px", borderRadius:"12px", textDecoration:"none", marginTop:"8px",
+                background:"linear-gradient(135deg, #3E8E7E 0%, #2A6A5C 100%)", color:"#fff", fontWeight:700, fontSize:"13px",
+              }}><span>📘</span> SIR Guidelines</a>
+              <a href="https://www.openevidence.com" target="_blank" rel="noopener noreferrer" style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:"5px",
+                padding:"14px 12px", borderRadius:"12px", textDecoration:"none", marginTop:"8px",
+                background:"linear-gradient(135deg, #F0913A 0%, #D9701A 100%)", color:"#fff", fontWeight:700, fontSize:"13px",
+              }}><span>🔎</span> OpenEvidence</a>
             </div>
 
             <div style={{ marginTop:"40px", display:"flex", justifyContent:"center", gap:"10px" }}>
