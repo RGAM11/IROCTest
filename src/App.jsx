@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import EditMode from "./Edit";
 
 const BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8WCngGjo-orcDfBB2hyCmcljMSwMPh3lEE243hQ0mnDrTojxCUPxwhgNcgdjdHg/pub";
 const CSV_TABS = {
@@ -11,7 +12,31 @@ const CSV_TABS = {
 
 // Google Apps Script endpoint that emails suggestions to radsgam@gmail.com.
 // Deploy the script (see instructions) and paste its Web App URL here:
-const SUGGESTION_ENDPOINT = "https://script.google.com/macros/s/AKfycbzRp_C5rwTJJ4262-Vr5JkMrxDvZTXHkBB3dAUXy8pco2JH5igv4gXrhXoblRoCHjYD1A/exec";
+const SUGGESTION_ENDPOINT = "https://script.google.com/macros/s/AKfycbxpP4gX31KCTJKzFsq7qna3u-GpQxd5GhMCXQtyfYCVE7WddPGpDw8tFEk5EUvtMRX2Gg/exec";
+
+// ─── Anonymous usage logging ───
+// Logs WHAT was used, never WHO used it. No names, no phone numbers, no call
+// destinations. "Device" is a random string generated on this phone — it lets
+// us count unique users without identifying anyone.
+const getDeviceId = () => {
+  try {
+    let id = localStorage.getItem("iroc_did");
+    if (!id) {
+      id = Math.random().toString(36).slice(2, 10);
+      localStorage.setItem("iroc_did", id);
+    }
+    return id;
+  } catch (e) { return "na"; }
+};
+
+const logEvent = (ev, hospital = "", role = "") => {
+  try {
+    const url = `${SUGGESTION_ENDPOINT}?log=1&ev=${encodeURIComponent(ev)}`
+      + `&h=${encodeURIComponent(hospital)}&r=${encodeURIComponent(role)}`
+      + `&d=${encodeURIComponent(getDeviceId())}&t=${Date.now()}`;
+    fetch(url, { method: "GET", mode: "no-cors", cache: "no-store" }).catch(() => {});
+  } catch (e) { /* logging must never break the app */ }
+};
 
 const DAYS = ["Friday","Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday"];
 
@@ -434,8 +459,11 @@ export default function App() {
   const [sugStatus, setSugStatus] = useState("idle"); // idle | sending | sent | error
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState("light");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => { fetchSchedule().then(d => setSchedule(d)).finally(() => setLoading(false)); }, []);
+  useEffect(() => { logEvent("open"); }, []);
 
   // Android/iOS back button: navigate within app instead of exiting.
   // When a hospital is opened we push a history entry; the phone back button
@@ -481,6 +509,7 @@ export default function App() {
     setSelectedHospital(id);
     setSelectedRole((HOSPITAL_ROLES[id]||[])[0]?.key || null);
     setSelectedDay(todayName);
+    logEvent("hospital", HOSPITALS.find(h => h.id === id)?.abbr || "");
   };
 
   const getEntry = (hId, rKey, day) => {
@@ -524,6 +553,44 @@ export default function App() {
 
     return (
       <div style={{ minHeight:"100vh", background:T.bg, fontFamily:font, position:"relative", width:"100%", maxWidth:"100vw", overflowX:"hidden" }}>
+
+        {editOpen && (
+          <EditMode endpoint={SUGGESTION_ENDPOINT} T={T} dk={dk}
+            onClose={()=>{ setEditOpen(false); setMenuOpen(false); }} />
+        )}
+
+        {/* ── top-right menu ── */}
+        <div style={{ position:"absolute", top:"14px", right:"14px", zIndex:50 }}>
+          <div onClick={()=>setMenuOpen(o=>!o)}
+            style={{ width:"40px", height:"40px", borderRadius:"10px", display:"flex",
+              alignItems:"center", justifyContent:"center", cursor:"pointer",
+              background:T.card, border:`1px solid ${T.cardBorder}`,
+              color:T.text, fontSize:"18px", fontWeight:700, lineHeight:1 }}>
+            ⋮
+          </div>
+          {menuOpen && (
+            <>
+              <div onClick={()=>setMenuOpen(false)}
+                style={{ position:"fixed", inset:0, zIndex:40 }} />
+              <div style={{ position:"absolute", top:"46px", right:0, zIndex:50, minWidth:"188px",
+                background:T.card, border:`1px solid ${T.cardBorder}`, borderRadius:"12px",
+                overflow:"hidden", boxShadow:"0 8px 24px rgba(0,0,0,0.18)" }}>
+                <div onClick={()=>{ setMenuOpen(false); setEditOpen(true); }}
+                  style={{ padding:"14px 16px", display:"flex", alignItems:"center", gap:"9px",
+                    color:T.text, fontWeight:700, fontSize:"13px", cursor:"pointer",
+                    borderBottom:`1px solid ${T.cardBorder}` }}>
+                  🔒 Scheduler Login
+                </div>
+                <div onClick={()=>{ setTheme(dk ? "light" : "dark"); setMenuOpen(false); }}
+                  style={{ padding:"14px 16px", display:"flex", alignItems:"center", gap:"9px",
+                    color:T.text, fontWeight:600, fontSize:"13px", cursor:"pointer" }}>
+                  {dk ? "☀️ Light mode" : "🌙 Dark mode"}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
         <div style={{ position:"relative", zIndex:1 }}>
           {/* #7 Watermark behind title */}
           <div style={{ position:"relative" }}>
@@ -574,43 +641,48 @@ export default function App() {
               }}><span>☁️</span> OneDrive - Call Sign Out</a>
             </div>
 
+            {/* Divider */}
+            <div style={{ height:"1px", background:T.cardBorder, margin:"22px 30px" }} />
+
             {/* Suggestion box */}
-            <div style={{ marginTop:"26px", background: dk ? "#132033" : "#FFFFFF", border:`2px solid ${T.cardBorder}`, borderRadius:"14px", padding:"14px" }}>
-              <div style={{ fontSize:"10px", letterSpacing:"2px", color:T.quickLinkText, fontWeight:700, textTransform:"uppercase", textAlign:"center", marginBottom:"8px" }}>
+            <div style={{ background: dk ? "#132033" : "#FFFFFF", border:`1.5px solid ${T.cardBorder}`, borderRadius:"12px", padding:"10px" }}>
+              <div style={{ fontSize:"10px", letterSpacing:"1.5px", color:T.quickLinkText, fontWeight:700, textTransform:"uppercase", textAlign:"center", marginBottom:"6px" }}>
                 💡 Suggest an Improvement
               </div>
               <textarea
                 value={suggestion}
                 onChange={(e)=>{ setSuggestion(e.target.value); if (sugStatus==="sent"||sugStatus==="error") setSugStatus("idle"); }}
                 placeholder="Idea, issue, or feature request…"
-                rows={3}
-                style={{ width:"100%", boxSizing:"border-box", padding:"10px", borderRadius:"10px", resize:"vertical",
-                  border:`1.5px solid ${T.cardBorder}`, background: dk ? "#0F1D30" : "#F7FAFC",
-                  color: dk ? "#E2E8F0" : "#1E293B", fontSize:"14px", fontFamily:"inherit" }}
+                rows={2}
+                style={{ width:"100%", boxSizing:"border-box", padding:"8px", borderRadius:"9px", resize:"vertical",
+                  border:`1px solid ${T.cardBorder}`, background: dk ? "#0F1D30" : "#F7FAFC",
+                  color: dk ? "#E2E8F0" : "#1E293B", fontSize:"13px", fontFamily:"inherit" }}
               />
               <div
                 onClick={async ()=>{
                   if (!suggestion.trim() || sugStatus==="sending") return;
+                  const text = suggestion.trim();
                   setSugStatus("sending");
+                  const url = `${SUGGESTION_ENDPOINT}?s=${encodeURIComponent(text)}&t=${Date.now()}`;
                   try {
-                    await fetch(SUGGESTION_ENDPOINT, {
-                      method:"POST", mode:"no-cors",
-                      headers:{ "Content-Type":"text/plain" },
-                      body: JSON.stringify({ suggestion: suggestion.trim(), sentAt: new Date().toLocaleString() }),
-                    });
+                    await fetch(url, { method:"GET", mode:"no-cors", cache:"no-store", redirect:"follow" });
                     setSugStatus("sent"); setSuggestion("");
-                  } catch(e) { setSugStatus("error"); }
+                  } catch(e) {
+                    // Fallback: image beacon — can't be blocked by CORS
+                    try {
+                      const img = new Image();
+                      img.src = url;
+                      setSugStatus("sent"); setSuggestion("");
+                    } catch(e2) { setSugStatus("error"); }
+                  }
                 }}
-                style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"6px", marginTop:"8px",
-                  padding:"12px", borderRadius:"10px", fontWeight:700, fontSize:"13px",
+                style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"6px", marginTop:"6px",
+                  padding:"10px", borderRadius:"9px", fontWeight:700, fontSize:"13px",
                   background: sugStatus==="sent" ? "#2A9D5A" : (suggestion.trim() ? "linear-gradient(135deg, #3D7A8F 0%, #2B5A6C 100%)" : (dk ? "#1A2A3F" : "#E2E8F0")),
                   color: (suggestion.trim()||sugStatus==="sent") ? "#fff" : T.textMuted,
                   cursor: suggestion.trim() ? "pointer" : "default" }}
               >
                 {sugStatus==="sending" ? "Sending…" : sugStatus==="sent" ? "✓ Sent — thank you!" : sugStatus==="error" ? "Couldn't send — tap to retry" : "📨 Send Suggestion"}
-              </div>
-              <div style={{ fontSize:"10px", color:T.textMuted, textAlign:"center", marginTop:"6px" }}>
-                Sends anonymously, right from the app
               </div>
             </div>
 
@@ -663,11 +735,11 @@ export default function App() {
     const digits = phone.replace(/[^0-9]/g,"");
     return (
       <div style={{ display:"flex", gap:"8px", marginTop:"8px" }}>
-        <a href={`tel:${digits}`} style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:"4px",
+        <a href={`tel:${digits}`} onClick={()=>logEvent("call", hospital?.abbr || "", activeRole?.label || "")} style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:"4px",
           padding:"8px 0", borderRadius:"8px", background:clr, color:"#fff", textDecoration:"none", fontSize:"12px", fontWeight:700 }}>
           📞 Call
         </a>
-        {!noText && <a href={`sms:${digits}`} style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:"4px",
+        {!noText && <a href={`sms:${digits}`} onClick={()=>logEvent("text", hospital?.abbr || "", activeRole?.label || "")} style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:"4px",
           padding:"8px 0", borderRadius:"8px", background:T.oncallBg, border:`1.5px solid ${clr}`, color:clr, textDecoration:"none", fontSize:"12px", fontWeight:700 }}>
           💬 Text
         </a>}
@@ -729,7 +801,7 @@ export default function App() {
               {rowGroups[rn].map(role => {
                 const act = effectiveRole === role.key;
                 return (
-                  <div key={role.key} onClick={()=>setSelectedRole(role.key)} style={{
+                  <div key={role.key} onClick={()=>{ setSelectedRole(role.key); logEvent("role", hospital?.abbr || "", role.label); }} style={{
                     textAlign:"center", padding:"7px 3px", borderRadius:"8px", cursor:"pointer",
                     background: act ? hospital.color : (role.tint && !dk ? role.tint : T.roleBg),
                     border:`2px solid ${act ? hospital.color : T.roleBorder}`,
