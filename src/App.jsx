@@ -711,7 +711,7 @@ export default function App() {
             </div>
 
             <div style={{ textAlign:"center", marginTop:"14px", fontSize:"9px", color:T.textMuted, letterSpacing:"1px" }}>
-              IROC v10.2.0
+              IROC v10.2.1
             </div>
 
             <div style={{ height:"30px" }} />

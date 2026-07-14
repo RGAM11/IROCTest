@@ -1,11 +1,16 @@
 import { useState } from "react";
 
-// ── JSONP: lets us actually read the response cross-origin ──
+// ── Request helper ──
+// IMPORTANT: we send the request WITHOUT Google cookies (credentials:"omit").
+// If cookies go along, Google rewrites the URL to /macros/u/<N>/s/... to pick
+// one of the user's signed-in accounts — and if that account can't see the
+// script, the call dies. Omitting credentials makes it a plain anonymous
+// request, which is what an "Anyone" deployment expects.
 let jid = 0;
-export const jsonp = (base, params) => new Promise((resolve, reject) => {
+
+const viaJsonp = (base, params) => new Promise((resolve, reject) => {
   const cb = "irocCb" + (++jid) + "_" + Date.now();
-  const qs = Object.keys(params)
-    .map(k => `${k}=${encodeURIComponent(params[k])}`).join("&");
+  const qs = Object.keys(params).map(k => `${k}=${encodeURIComponent(params[k])}`).join("&");
   const script = document.createElement("script");
   const timer = setTimeout(() => { cleanup(); reject(new Error("timed out")); }, 25000);
   const cleanup = () => {
@@ -13,11 +18,34 @@ export const jsonp = (base, params) => new Promise((resolve, reject) => {
     try { delete window[cb]; } catch (e) { window[cb] = undefined; }
     if (script.parentNode) script.parentNode.removeChild(script);
   };
-  window[cb] = (data) => { cleanup(); resolve(data); };
-  script.onerror = () => { cleanup(); reject(new Error("could not reach the script")); };
+  window[cb] = (d) => { cleanup(); resolve(d); };
+  script.onerror = () => { cleanup(); reject(new Error("blocked")); };
   script.src = `${base}?${qs}&callback=${cb}`;
   document.body.appendChild(script);
 });
+
+export const jsonp = async (base, params) => {
+  const qs = Object.keys(params).map(k => `${k}=${encodeURIComponent(params[k])}`).join("&");
+  const url = `${base}?${qs}&_=${Date.now()}`;
+  // 1. cookie-less fetch — immune to the multi-account /u/N/ redirect
+  try {
+    const r = await fetch(url, {
+      method: "GET",
+      credentials: "omit",
+      redirect: "follow",
+      cache: "no-store",
+    });
+    if (r.ok) {
+      const txt = await r.text();
+      try { return JSON.parse(txt); }
+      catch (e) { throw new Error("unexpected reply"); }
+    }
+    throw new Error("HTTP " + r.status);
+  } catch (e) {
+    // 2. fall back to JSONP (works where CORS is the blocker)
+    return viaJsonp(base, params);
+  }
+};
 
 const DAYS = ["Friday","Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday"];
 const WEEKDAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
