@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import EditMode from "./Edit";
 
-const BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8WCngGjo-orcDfBB2hyCmcljMSwMPh3lEE243hQ0mnDrTojxCUPxwhgNcgdjdHg/pub";
+const BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSz1MLm6ZSF1hSKaxr6bdDrO98npeCxLhrkaxcdsKytZgAIPE80wCs1o0ot5ATTPcjTuf3wRfgs1VVM/pub";
 const CSV_TABS = {
   euh:      `${BASE}?gid=775592937&single=true&output=csv`,
   ehhedh:   `${BASE}?gid=1534156653&single=true&output=csv`,
@@ -343,12 +343,15 @@ const initData = () => {
 const fetchSchedule = async () => {
   const data = initData();
   try {
+    // cache-bust so a fresh save shows up instead of a stale cached CSV
+    const bust = `&_=${Date.now()}`;
+    const grab = (u) => fetch(u + bust, { cache: "no-store" }).then(r=>r.text());
     const [euh, ehhedh, mtwem, esjhejch, gmh] = await Promise.all([
-      fetch(CSV_TABS.euh).then(r=>r.text()),
-      fetch(CSV_TABS.ehhedh).then(r=>r.text()),
-      fetch(CSV_TABS.mtwem).then(r=>r.text()),
-      fetch(CSV_TABS.esjhejch).then(r=>r.text()),
-      fetch(CSV_TABS.gmh).then(r=>r.text()),
+      grab(CSV_TABS.euh),
+      grab(CSV_TABS.ehhedh),
+      grab(CSV_TABS.mtwem),
+      grab(CSV_TABS.esjhejch),
+      grab(CSV_TABS.gmh),
     ]);
     try { parseEUHTab(euh, data); } catch(e) { console.error("EUH parse error:", e); }
     try { parseEHHEDHTab(ehhedh, data); } catch(e) { console.error("EHH-EDH parse error:", e); }
@@ -684,6 +687,10 @@ export default function App() {
               >
                 {sugStatus==="sending" ? "Sending…" : sugStatus==="sent" ? "✓ Sent — thank you!" : sugStatus==="error" ? "Couldn't send — tap to retry" : "📨 Send Suggestion"}
               </div>
+            </div>
+
+            <div style={{ textAlign:"center", marginTop:"14px", fontSize:"9px", color:T.textMuted, letterSpacing:"1px" }}>
+              IROC v10.1.1
             </div>
 
             <div style={{ marginTop:"40px", display:"flex", justifyContent:"center", gap:"10px" }}>

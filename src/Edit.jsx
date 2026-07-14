@@ -73,8 +73,9 @@ export default function EditMode({ endpoint, T, dk, onClose }) {
   const login = async () => {
     setBusy(true); setErr("");
     try {
-      const r = await jsonp(endpoint, { mode:"auth", code });
-      if (!r.ok) { setErr("Wrong code."); setBusy(false); return; }
+      const c = (code || "").trim();
+      const r = await jsonp(endpoint, { mode:"auth", code: c });
+      if (!r.ok) { setErr(`Code not accepted (you sent "${c}"). Check for autofill or spaces.`); setBusy(false); return; }
       const d = await jsonp(endpoint, { mode:"data" });
       if (!d.ok) { setErr(d.error || "Could not load."); setBusy(false); return; }
       setData(d.data); setStaff(d.data.staff); setStep("list");
@@ -111,7 +112,7 @@ export default function EditMode({ endpoint, T, dk, onClose }) {
     setBusy(true); setErr("");
     try {
       const r = await jsonp(endpoint, {
-        mode:"save", code, payload: JSON.stringify({ hospital: hosp.k, fields: form })
+        mode:"save", code: (code||"").trim(), payload: JSON.stringify({ hospital: hosp.k, fields: form })
       });
       if (r.ok) { setSavedAt(new Date().toLocaleTimeString()); }
       else setErr(r.error || "Save failed.");
@@ -122,7 +123,7 @@ export default function EditMode({ endpoint, T, dk, onClose }) {
   const saveStaff = async () => {
     setBusy(true); setErr("");
     try {
-      const r = await jsonp(endpoint, { mode:"staff", code, payload: JSON.stringify(staff) });
+      const r = await jsonp(endpoint, { mode:"staff", code: (code||"").trim(), payload: JSON.stringify(staff) });
       if (r.ok) setSavedAt(new Date().toLocaleTimeString());
       else setErr(r.error || "Save failed.");
     } catch (e) { setErr("Save failed."); }
@@ -159,8 +160,11 @@ export default function EditMode({ endpoint, T, dk, onClose }) {
       <div style={{ color:"#8FA8C4", fontSize:"12px", marginTop:"6px", marginBottom:"22px" }}>
         Enter the scheduler code
       </div>
-      <input type="password" inputMode="numeric" value={code} autoFocus
-        onChange={e=>setCode(e.target.value)}
+      <input type="text" inputMode="numeric" value={code}
+        autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
+        name="iroc-scheduler-code"
+        placeholder="code"
+        onChange={e=>setCode(e.target.value.replace(/\s/g, ""))}
         onKeyDown={e=>{ if(e.key==="Enter") login(); }}
         style={{ width:"200px", textAlign:"center", letterSpacing:"8px", fontSize:"22px",
           padding:"12px", borderRadius:"10px", border:"2px solid #3A5C86",
