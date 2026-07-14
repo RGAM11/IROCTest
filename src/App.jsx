@@ -168,12 +168,13 @@ const c = (r, i) => clean(r[i]);
 
 // ── Helpers for banner + other numbers (shared) ──
 const parseBanner = (rows, data, id) => {
-  const bi = findAnchor(rows, "SPECIAL INSTRUCTIONS");
+  let bi = findAnchor(rows, "SPECIAL INSTRUCTIONS");
+  if (bi < 0) bi = findAnchor(rows, "ANNOUNCEMENT");
   if (bi >= 0) {
     // instruction text is in the next non-empty row, col 0
     for (let r = bi+1; r < Math.min(bi+3, rows.length); r++) {
       const txt = c(rows[r], 0);
-      if (txt && !txt.toUpperCase().includes("SPECIAL INSTRUCTIONS")) { data[id]._banner = txt; break; }
+      if (txt && !txt.toUpperCase().includes("SPECIAL INSTRUCTIONS") && !txt.toUpperCase().includes("ANNOUNCEMENT")) { data[id]._banner = txt; break; }
     }
   }
 };
@@ -208,27 +209,47 @@ const parseEUHTab = (text, data) => {
     }
   }
 
-  // ③ RN Weekend / ④ Tech Weekend
-  const parseWeekend = (anchorText, nIH, keyIH, keyPrimary, keySecond) => {
+  // ③ RN Weekend / ④ Tech Weekend — Name/Time/Phone triplets, labels in header
+  const parseWeekend = (anchorText, keyIH, keyPrimary, keySecond) => {
     const a = findAnchor(rows, anchorText); if (a < 0) return;
-    for (let r = a+2; r < a+4 && r < rows.length; r++) {
-      const day = c(rows[r],1); if (day!=="Saturday" && day!=="Sunday") continue;
-      // layout: col0 HOSP, col1 DAY, then per slot: Name, Phone
-      let col = 2; const ih = [];
-      for (let k=0;k<nIH;k++){ const nm=c(rows[r],col), ph=c(rows[r],col+1); if(nm) ih.push({name:nm,phone:ph}); col+=2; }
-      data[id][keyIH][day] = ih.length ? { name:ih.map(e=>e.name).join(", "), phone:ih[0]?.phone||"", time:"7:00 AM – 7:30 PM", entries:ih } : { name:"N/A", phone:"", time:"" };
-      const pdN=c(rows[r],col),pdP=c(rows[r],col+1); col+=2;
-      const pnN=c(rows[r],col),pnP=c(rows[r],col+1); col+=2;
-      if (pdN && pnN) data[id][keyPrimary][day] = { name:pdN, phone:pdP, time:"7:00 AM – 7:00 PM", name2:pnN, phone2:pnP, time2:"7:00 PM – 7:00 AM" };
-      else if (pdN) data[id][keyPrimary][day] = { name:pdN, phone:pdP, time:"7:00 AM – 7:00 PM" };
-      else if (pnN) data[id][keyPrimary][day] = { name:pnN, phone:pnP, time:"7:00 PM – 7:00 AM" };
-      else data[id][keyPrimary][day] = { name:"N/A", phone:"", time:"" };
-      const s2N=c(rows[r],col),s2P=c(rows[r],col+1);
-      data[id][keySecond][day] = s2N ? { name:s2N, phone:s2P, time:"7:00 PM – 7:00 AM" } : { name:"N/A", phone:"", time:"" };
+    const hdr = rows[a+1] || [];
+    // slot labels sit every 3rd column starting at index 2
+    const labels = [];
+    for (let c = 2; c < hdr.length; c += 3) {
+      const lb = clean(hdr[c]); if (!lb) break;
+      labels.push(lb.split("\n")[0]);
+    }
+    if (!labels.length) return;
+
+    for (let r = a+2; r < a+5 && r < rows.length; r++) {
+      const day = c(rows[r],1);
+      if (day !== "Saturday" && day !== "Sunday") continue;
+
+      const ih = [], primary = [], second = [], extra = [];
+      labels.forEach((lb, k) => {
+        const base = 2 + k*3;
+        const nm = c(rows[r], base), tm = c(rows[r], base+1), ph = c(rows[r], base+2);
+        if (!nm) return;
+        const L = lb.toLowerCase();
+        const item = { name:nm, time:tm, phone:ph };
+        if (L.includes("in-house") || L.includes("in house")) ih.push(item);
+        else if (L.includes("primary")) primary.push(item);
+        else if (L.includes("2nd") || L.includes("second")) second.push(item);
+        else extra.push(item);
+      });
+
+      const box = (list, fallbackTime) => list.length
+        ? { name: list.map(e=>e.name).join(", "), phone: list[0].phone || "",
+            time: list[0].time || fallbackTime, entries: list }
+        : { name:"N/A", phone:"", time:"" };
+
+      data[id][keyIH][day]      = box(ih, "7:00 AM – 7:30 PM");
+      data[id][keyPrimary][day] = box(primary.concat(extra), "");
+      data[id][keySecond][day]  = box(second, "7:00 PM – 7:00 AM");
     }
   };
-  parseWeekend("IR RN — WEEKEND", 3, "IHRN", "PrimaryRN", "SecondRN");
-  parseWeekend("IR TECH — WEEKEND", 2, "IHTech", "PrimaryTech", "SecondTech");
+  parseWeekend("IR RN — WEEKEND", "IHRN", "PrimaryRN", "SecondRN");
+  parseWeekend("IR TECH — WEEKEND", "IHTech", "PrimaryTech", "SecondTech");
 
   // ⑤ RN Weekday / ⑥ Tech Weekday — RN1/2/3 (Name,Time,Phone), Mon-Fri
   const parseWeekday = (anchorText, keyPrimary) => {
@@ -252,7 +273,7 @@ const parseEHHEDHTab = (text, data) => {
   // Banner + other numbers apply to both EHH(2) and EDH(3) — store on each
   const bi = findAnchor(rows, "SPECIAL INSTRUCTIONS");
   let banner = "";
-  if (bi>=0) for (let r=bi+1;r<Math.min(bi+3,rows.length);r++){ const t=c(rows[r],0); if(t&&!t.toUpperCase().includes("SPECIAL INSTRUCTIONS")){banner=t;break;} }
+  if (bi>=0) for (let r=bi+1;r<Math.min(bi+3,rows.length);r++){ const t=c(rows[r],0); if(t&&!t.toUpperCase().includes("SPECIAL INSTRUCTIONS") && !t.toUpperCase().includes("ANNOUNCEMENT")){banner=t;break;} }
   const oNums = []; const oi = findAnchor(rows, "OTHER NUMBERS");
   if (oi>=0) for (let r=oi+2;r<rows.length;r++){ const nm=c(rows[r],0),ph=c(rows[r],1); if(nm&&nm.toUpperCase()!=="NAME") oNums.push({label:nm,phone:ph}); }
   [2,3].forEach(hid => { if(data[hid]){ if(banner) data[hid]._banner=banner; if(oNums.length) data[hid]._extraNumbers=oNums; }});
@@ -292,8 +313,8 @@ const parseMTWEMTab = (text, data) => {
 // ─── ESJH-EJCH tab (two tables; EJCH old format IR/OCC/POS) ───
 const parseESJHEJCHTab = (text, data) => {
   const rows = parseCSVRows(text);
-  const bi=findAnchor(rows,"SPECIAL INSTRUCTIONS"); let banner="";
-  if(bi>=0) for(let r=bi+1;r<Math.min(bi+3,rows.length);r++){const t=c(rows[r],0); if(t&&!t.toUpperCase().includes("SPECIAL INSTRUCTIONS")){banner=t;break;}}
+  let bi=findAnchor(rows,"SPECIAL INSTRUCTIONS"); if(bi<0) bi=findAnchor(rows,"ANNOUNCEMENT"); let banner="";
+  if(bi>=0) for(let r=bi+1;r<Math.min(bi+3,rows.length);r++){const t=c(rows[r],0); if(t&&!t.toUpperCase().includes("SPECIAL INSTRUCTIONS") && !t.toUpperCase().includes("ANNOUNCEMENT")){banner=t;break;}}
   const oNums=[]; const oi=findAnchor(rows,"OTHER NUMBERS");
   if(oi>=0) for(let r=oi+2;r<rows.length;r++){const nm=c(rows[r],0),ph=c(rows[r],1); if(nm&&nm.toUpperCase()!=="NAME") oNums.push({label:nm,phone:ph});}
   [4,5].forEach(hid=>{if(data[hid]){if(banner)data[hid]._banner=banner; if(oNums.length)data[hid]._extraNumbers=oNums;}});
@@ -690,21 +711,9 @@ export default function App() {
             </div>
 
             <div style={{ textAlign:"center", marginTop:"14px", fontSize:"9px", color:T.textMuted, letterSpacing:"1px" }}>
-              IROC v10.1.1
+              IROC v10.2.0
             </div>
 
-            <div style={{ marginTop:"40px", display:"flex", justifyContent:"center", gap:"10px" }}>
-              <div onClick={()=>setTheme("light")} style={{
-                padding:"10px 24px", borderRadius:"10px", cursor:"pointer", fontWeight:700, fontSize:"12px",
-                background: !dk ? "#fff" : "transparent", color: !dk ? "#1E293B" : T.textMuted,
-                border:`2px solid ${!dk ? "#4A7EA0" : T.cardBorder}`,
-              }}>☀️ Light</div>
-              <div onClick={()=>setTheme("dark")} style={{
-                padding:"10px 24px", borderRadius:"10px", cursor:"pointer", fontWeight:700, fontSize:"12px",
-                background: dk ? "#1A2332" : "transparent", color: dk ? "#E2E8F0" : T.textMuted,
-                border:`2px solid ${dk ? "#4A6FA0" : T.cardBorder}`,
-              }}>🌙 Dark</div>
-            </div>
             <div style={{ height:"30px" }} />
           </div>
         </div>
@@ -778,7 +787,7 @@ export default function App() {
           <div style={{ marginBottom:"14px", padding:"12px 14px", borderRadius:"12px",
             background: dk ? "#3A2E14" : "#FFF7E0", border:`2px solid ${dk ? "#B8892E" : "#E0B84A"}` }}>
             <div style={{ fontSize:"10px", fontWeight:800, color: dk ? "#E0B84A" : "#9A6E1A", letterSpacing:"1px", textTransform:"uppercase", marginBottom:"4px" }}>
-              📢 Special Instructions
+              📢 Announcements
             </div>
             <div style={{ fontSize:"14px", color: dk ? "#F0E4C4" : "#5A4A1A", lineHeight:1.5, whiteSpace:"pre-line" }}>
               {schedule[selectedHospital]._banner}
