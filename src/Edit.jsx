@@ -47,6 +47,26 @@ export const jsonp = async (base, params) => {
   }
 };
 
+
+// POST for large writes (roster / hospital). Body avoids the URL-length limit
+// that was rejecting big saves ("blocked"). credentials:"omit" keeps us clear
+// of the multi-account redirect, same as the read path.
+export const postJson = async (base, payloadObj) => {
+  const url = `${base}?_=${Date.now()}`;
+  const r = await fetch(url, {
+    method: "POST",
+    credentials: "omit",
+    redirect: "follow",
+    cache: "no-store",
+    // text/plain avoids a CORS preflight that Apps Script can't answer
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payloadObj),
+  });
+  const txt = await r.text();
+  try { return JSON.parse(txt); }
+  catch (e) { throw new Error("unexpected reply"); }
+};
+
 const DAYS = ["Friday","Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday"];
 const WEEKDAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
 const WEEKEND = ["Saturday","Sunday"];
@@ -206,10 +226,14 @@ export default function EditMode({ endpoint, T, dk, onClose }) {
     const c = clean();
     setBusy(true); setErr("");
     try {
-      const r = await jsonp(endpoint, { mode:"auth", code:c });
-      if (!r || !r.ok) { setErr(`Code not accepted. Sent: "${c}" (${c.length} chars)`); setBusy(false); return; }
-      const d = await jsonp(endpoint, { mode:"data" });
-      if (!d || !d.ok) { setErr((d && d.error) || "Signed in, but could not read the sheet."); setBusy(false); return; }
+      // one round-trip: authenticate AND load data together (was two calls)
+      const d = await jsonp(endpoint, { mode:"authdata", code:c });
+      if (!d || !d.ok) {
+        setErr(d && d.error === "Bad code"
+          ? `Code not accepted. Sent: "${c}" (${c.length} chars)`
+          : ((d && d.error) || "Could not read the sheet."));
+        setBusy(false); return;
+      }
       setData(d.data); setStaff(d.data.staff); setStep("list");
     } catch (e) { setErr("Could not reach the script: " + e.message); }
     setBusy(false);
@@ -240,8 +264,8 @@ export default function EditMode({ endpoint, T, dk, onClose }) {
   const saveHosp = async () => {
     setBusy(true); setErr("");
     try {
-      const r = await jsonp(endpoint, { mode:"save", code:clean(),
-        payload: JSON.stringify({ hospital: hosp.k, fields: form }) });
+      const r = await postJson(endpoint, { mode:"save", code:clean(),
+        hospital: hosp.k, fields: form });
       if (r && r.ok) setSavedAt(new Date().toLocaleTimeString());
       else setErr((r && r.error) || "Save failed.");
     } catch (e) { setErr("Save failed: " + e.message); }
@@ -251,8 +275,7 @@ export default function EditMode({ endpoint, T, dk, onClose }) {
   const saveStaff = async () => {
     setBusy(true); setErr("");
     try {
-      const r = await jsonp(endpoint, { mode:"staff", code:clean(),
-        payload: JSON.stringify(staff) });
+      const r = await postJson(endpoint, { mode:"staff", code:clean(), ...staff });
       if (r && r.ok) setSavedAt(new Date().toLocaleTimeString());
       else setErr((r && r.error) || "Save failed.");
     } catch (e) { setErr("Save failed: " + e.message); }

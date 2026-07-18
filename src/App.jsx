@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import EditMode from "./Edit";
 
+// ═══════════════════════════════════════════════════════════════
+// MAINTENANCE MODE
+// Set MAINTENANCE to true to take IROC offline and show the notice.
+// Set it back to false (and rebuild/push) to bring the app back.
+// ═══════════════════════════════════════════════════════════════
+const MAINTENANCE = true;
+const MAINTENANCE_MESSAGE = "IROC is temporarily paused. Please follow the on-call emails in the meantime.";
+
 const BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSz1MLm6ZSF1hSKaxr6bdDrO98npeCxLhrkaxcdsKytZgAIPE80wCs1o0ot5ATTPcjTuf3wRfgs1VVM/pub";
 const CSV_TABS = {
   euh:      `${BASE}?gid=775592937&single=true&output=csv`,
@@ -474,7 +482,49 @@ function TieLineDialer({ tieLines, T, color }) {
   );
 }
 
+function MaintenanceScreen() {
+  return (
+    <div style={{
+      minHeight:"100vh", width:"100%",
+      background:"linear-gradient(180deg, #16283C 0%, #0D1622 100%)",
+      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      textAlign:"center", padding:"32px",
+      fontFamily:"-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    }}>
+      <div style={{ fontSize:"40px", fontWeight:900, letterSpacing:"3px", lineHeight:1 }}>
+        <span style={{ color:"#7BA3C9" }}>I</span>
+        <span style={{ color:"#5E8FBF" }}>R</span>
+        <span style={{ color:"#4A7EA0" }}>O</span>
+        <span style={{ color:"#C8D8E8" }}>C</span>
+      </div>
+      <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:"4px", marginTop:"8px" }}>
+        <div style={{ width:"28px", height:"4px", borderRadius:"2px", background:"#4A7EA0" }} />
+        <div style={{ width:"8px",  height:"4px", borderRadius:"2px", background:"#5E8FBF" }} />
+        <div style={{ width:"5px",  height:"4px", borderRadius:"2px", background:"#7BA3C9" }} />
+      </div>
+
+      <div style={{ fontSize:"44px", marginTop:"34px", marginBottom:"18px" }}>🚧</div>
+
+      <div style={{ fontSize:"18px", fontWeight:800, color:"#EAF1F8", marginBottom:"12px" }}>
+        Temporarily Paused
+      </div>
+      <div style={{ fontSize:"15px", color:"#AFC2D6", lineHeight:1.6, maxWidth:"340px" }}>
+        {MAINTENANCE_MESSAGE}
+      </div>
+
+      <div style={{ marginTop:"40px", fontSize:"11px", color:"#5B7089", letterSpacing:"1px" }}>
+        INTERVENTIONAL RADIOLOGY ON-CALL
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
+  if (MAINTENANCE) return <MaintenanceScreen />;
+  return <MainApp />;
+}
+
+function MainApp() {
   const [schedule, setSchedule] = useState(null);
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [selectedRole, setSelectedRole] = useState(null);
@@ -519,6 +569,10 @@ export default function App() {
   const dk = theme === "dark";
   const T = {
     bg: dk ? "#0F1724" : "#EDF2F7", card: dk ? "#1A2332" : "#ffffff",
+    // Home-page gradient (#6 light: deeper steel-blue -> soft; #10 dark: radial glow behind title)
+    homeBg: dk
+      ? "radial-gradient(120% 90% at 50% 22%, #26496B 0%, #16283C 48%, #0D1622 100%)"
+      : "linear-gradient(180deg, #CEDCE8 0%, #DCE6EF 42%, #EAEFF4 100%)",
     cardBorder: dk ? "#2D3B4E" : "#D4DAE3", text: dk ? "#E2E8F0" : "#1E293B",
     textSub: dk ? "#8899AA" : "#7E8A9A", textMuted: dk ? "#5A6B7D" : "#94A3B8",
     roleBg: dk ? "#1A2332" : "#fff", roleBorder: dk ? "#3D4F63" : "#B8C4CE",
@@ -576,7 +630,7 @@ export default function App() {
     );
 
     return (
-      <div style={{ minHeight:"100vh", background:T.bg, fontFamily:font, position:"relative", width:"100%", maxWidth:"100vw", overflowX:"hidden" }}>
+      <div style={{ minHeight:"100vh", background:T.homeBg, backgroundAttachment:"fixed", fontFamily:font, position:"relative", width:"100%", maxWidth:"100vw", overflowX:"hidden" }}>
 
         {editOpen && (
           <EditMode endpoint={SUGGESTION_ENDPOINT} T={T} dk={dk}
@@ -616,35 +670,29 @@ export default function App() {
         </div>
 
         <div style={{ position:"relative", zIndex:1 }}>
-          {/* #7 Watermark behind title */}
-          <div style={{ position:"relative" }}>
-            <div style={{ position:"absolute", top:"85%", left:"50%", transform:"translate(-50%,-50%)", width:"55vw", maxWidth:"300px", aspectRatio:"1",
-              backgroundImage:`url("${CREST_URL}")`, backgroundSize:"contain", backgroundRepeat:"no-repeat", backgroundPosition:"center",
-              opacity: dk ? 0.07 : 0.07, pointerEvents:"none", zIndex:0, filter: dk ? "invert(1)" : "none" }} />
-            <div style={{ paddingTop:"76px", textAlign:"center", position:"relative", zIndex:1 }}>
-              <div style={{ fontSize:"12px", letterSpacing:"4px", color:T.textMuted, fontWeight:700, textTransform:"uppercase" }}>Interventional Radiology On-Call</div>
-              <div style={{ fontSize:"50px", fontWeight:900, letterSpacing:"3px", marginTop:"2px", lineHeight:"1" }}>
-                <span style={{ color: dk ? "#6A9FD0" : "#7BA3C9" }}>I</span>
-                <span style={{ color: dk ? "#4A85C0" : "#4A6FA0" }}>R</span>
-                <span style={{ color: dk ? "#3068A8" : "#4A7EA0" }}>O</span>
-                <span style={{ color: dk ? "#8BADE0" : "#1E3A5F" }}>C</span>
-              </div>
-              <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:"4px", marginTop:"4px" }}>
-                <div style={{ width:"28px", height:"4px", borderRadius:"2px", background: dk ? "#3068A8" : "#4A7EA0" }} />
-                <div style={{ width:"8px", height:"4px", borderRadius:"2px", background: dk ? "#4A85C0" : "#4A6FA0" }} />
-                <div style={{ width:"5px", height:"4px", borderRadius:"2px", background: dk ? "#6A9FD0" : "#7BA3C9" }} />
-              </div>
+          <div style={{ paddingTop:"72px", textAlign:"center", position:"relative", zIndex:1 }}>
+            <div style={{ fontSize:"12px", letterSpacing:"4px", color:T.textMuted, fontWeight:700, textTransform:"uppercase" }}>Interventional Radiology On-Call</div>
+            <div style={{ fontSize:"50px", fontWeight:900, letterSpacing:"3px", marginTop:"2px", lineHeight:"1" }}>
+              <span style={{ color: dk ? "#6A9FD0" : "#7BA3C9" }}>I</span>
+              <span style={{ color: dk ? "#4A85C0" : "#4A6FA0" }}>R</span>
+              <span style={{ color: dk ? "#3068A8" : "#4A7EA0" }}>O</span>
+              <span style={{ color: dk ? "#8BADE0" : "#1E3A5F" }}>C</span>
+            </div>
+            <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:"4px", marginTop:"4px" }}>
+              <div style={{ width:"28px", height:"4px", borderRadius:"2px", background: dk ? "#3068A8" : "#4A7EA0" }} />
+              <div style={{ width:"8px", height:"4px", borderRadius:"2px", background: dk ? "#4A85C0" : "#4A6FA0" }} />
+              <div style={{ width:"5px", height:"4px", borderRadius:"2px", background: dk ? "#6A9FD0" : "#7BA3C9" }} />
             </div>
           </div>
 
-          <div style={{ marginTop:"70px", paddingLeft:"16px", paddingRight:"16px", maxWidth:"500px", marginLeft:"auto", marginRight:"auto" }}>
+          <div style={{ marginTop:"28px", paddingLeft:"16px", paddingRight:"16px", maxWidth:"500px", marginLeft:"auto", marginRight:"auto" }}>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"20px" }}>
               <div style={{ display:"flex", flexDirection:"column", gap:"20px", minWidth:0 }}>{leftCol.map(h=><Card key={h.id} h={h}/>)}</div>
               <div style={{ display:"flex", flexDirection:"column", gap:"20px", minWidth:0 }}>{rightCol.map(h=><Card key={h.id} h={h}/>)}</div>
             </div>
             <div style={{ marginTop:"20px" }}><Card h={gmh}/></div>
 
-            <div style={{ marginTop:"40px" }}>
+            <div style={{ marginTop:"24px", paddingTop:"20px", borderTop:`1px solid ${T.cardBorder}` }}>
               <div style={{ fontSize:"10px", letterSpacing:"2px", color:T.quickLinkText, fontWeight:700, textTransform:"uppercase", textAlign:"center", marginBottom:"8px" }}>Quick Links</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px" }}>
                 <a href="https://ehconnect.eushc.org/" target="_blank" rel="noopener noreferrer" style={{
@@ -711,7 +759,7 @@ export default function App() {
             </div>
 
             <div style={{ textAlign:"center", marginTop:"14px", fontSize:"9px", color:T.textMuted, letterSpacing:"1px" }}>
-              IROC v10.2.1
+              IROC v10.7.1
             </div>
 
             <div style={{ height:"30px" }} />
@@ -766,7 +814,7 @@ export default function App() {
   return (
     <div style={{ minHeight:"100vh", background:T.detailBg, fontFamily:font, overflowX:"hidden" }}>
       {/* Fixed header */}
-      <div style={{ background:hospital.color, padding:"18px 16px", display:"flex", alignItems:"center", gap:"10px", position:"fixed", top:0, left:0, right:0, zIndex:100 }}>
+      <div style={{ background:hospital.color, padding:"18px 16px", paddingTop:"max(18px, env(safe-area-inset-top))", display:"flex", alignItems:"center", gap:"10px", position:"fixed", top:0, left:0, right:0, zIndex:100 }}>
         <div onClick={closeHospital} style={{
           padding:"10px 20px", borderRadius:"10px", background:"rgba(255,255,255,0.2)",
           color:"#fff", fontSize:"15px", fontWeight:700, cursor:"pointer", flexShrink:0,
@@ -780,9 +828,8 @@ export default function App() {
         }}>📍 Navigate</a>
       </div>
 
-      <div style={{ padding:"68px 12px 40px", maxWidth:"500px", margin:"0 auto" }}>
-        {/* #4 DAY selector FIRST — double sized */}
-        <div style={{ fontSize:"10px", letterSpacing:"2px", color:T.textMuted, fontWeight:700, marginBottom:"5px", textTransform:"uppercase" }}>Day</div>
+      <div style={{ padding:"96px 12px 40px", maxWidth:"500px", margin:"0 auto" }}>
+        {/* Announcements banner first */}
         {schedule?.[selectedHospital]?._banner && (
           <div style={{ marginBottom:"14px", padding:"12px 14px", borderRadius:"12px",
             background: dk ? "#3A2E14" : "#FFF7E0", border:`2px solid ${dk ? "#B8892E" : "#E0B84A"}` }}>
@@ -794,6 +841,24 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* ESJH Entry Points — directly under announcements */}
+        {selectedHospital === 4 && (
+          <div style={{ marginBottom:"14px", padding:"12px 14px", borderRadius:"12px", background: dk ? "#1E2A3A" : "#FFF8E8", border:`2px solid ${dk ? "#3D5A7A" : "#D4B87A"}` }}>
+            <div style={{ fontSize:"13px", color: dk ? "#D4C090" : "#5A4A20", lineHeight:"1.5" }}>
+              🚪 Entry points after 9pm (Mon-Fri) and on weekends are through the <strong>ED waiting room</strong> &amp; <strong>Winship Main Entrance</strong>.
+            </div>
+          </div>
+        )}
+
+        {/* EJCH Call Workflow — directly under announcements */}
+        {selectedHospital === 5 && (
+          <div style={{ marginBottom:"14px", padding:"12px 14px", borderRadius:"12px", background: dk ? "#1E2A3A" : "#E6EDF8", border:`2px solid ${dk ? "#3D5A7A" : "#8AA0C0"}` }}>
+            <div style={{ fontSize:"14px", fontWeight:800, color: dk ? "#C0D0E0" : "#1B3A5C", marginBottom:"5px" }}>📋 EJCH Call Workflow</div>
+            <div style={{ fontSize:"13px", color: dk ? "#B0C0D0" : "#2A3A5A", lineHeight:"1.5", whiteSpace:"pre-line" }}>{"1. Call RN Supervisor — give appropriate info\n2. Call Anesthesia (if needed)\n3. Enter Procedure order\nOn-call team (RN/IR Tech) will post case utilizing P.O.S."}</div>
+          </div>
+        )}
+
         <div style={{ display:"flex", gap:"4px", marginBottom:"14px" }}>
           {DAYS.map((day,i) => {
             const d = weekDates[i]; const act = selectedDay === day;
@@ -833,22 +898,6 @@ export default function App() {
           ))}
         </div>
 
-        {/* EJCH Call Workflow — always visible */}
-        {selectedHospital === 5 && (
-          <div style={{ marginBottom:"12px", padding:"12px 14px", borderRadius:"12px", background: dk ? "#1E2A3A" : "#E6EDF8", border:`2px solid ${dk ? "#3D5A7A" : "#8AA0C0"}` }}>
-            <div style={{ fontSize:"14px", fontWeight:800, color: dk ? "#C0D0E0" : "#1B3A5C", marginBottom:"5px" }}>📋 EJCH Call Workflow</div>
-            <div style={{ fontSize:"13px", color: dk ? "#B0C0D0" : "#2A3A5A", lineHeight:"1.5", whiteSpace:"pre-line" }}>{"1. Call RN Supervisor — give appropriate info\n2. Call Anesthesia (if needed)\n3. Enter Procedure order\nOn-call team (RN/IR Tech) will post case utilizing P.O.S."}</div>
-          </div>
-        )}
-
-        {/* ESJH Entry Points */}
-        {selectedHospital === 4 && (
-          <div style={{ marginBottom:"12px", padding:"12px 14px", borderRadius:"12px", background: dk ? "#1E2A3A" : "#FFF8E8", border:`2px solid ${dk ? "#3D5A7A" : "#D4B87A"}` }}>
-            <div style={{ fontSize:"13px", color: dk ? "#D4C090" : "#5A4A20", lineHeight:"1.5" }}>
-              🚪 Entry points after 9pm (Mon-Fri) and on weekends are through the <strong>ED waiting room</strong> and the <strong>Winship Main Entrance</strong>.
-            </div>
-          </div>
-        )}
 
         {/* On-Call Card */}
         <div style={{ marginBottom:"14px" }}>
@@ -996,7 +1045,11 @@ export default function App() {
                 <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
                   {todayEntry.entries.map((e, idx) => (
                     <div key={idx} style={{ paddingTop: idx > 0 ? "8px" : "0", borderTop: idx > 0 ? `1px solid ${T.dayBorder}` : "none" }}>
-                      <div style={{ fontSize:"15px", fontWeight:700, color:T.text }}>{e.name}{e.phone ? <span style={{ fontWeight:500, fontSize:"13px", color:T.textSub }}> · 📞 {e.phone}</span> : ""}</div>
+                      <div style={{ fontSize:"15px", fontWeight:700, color:T.text }}>
+                        {e.name}
+                        {e.time ? <span style={{ fontWeight:500, fontSize:"12px", color:T.textSub }}> · {e.time}</span> : ""}
+                        {e.phone ? <span style={{ fontWeight:500, fontSize:"13px", color:T.textSub }}> · 📞 {e.phone}</span> : ""}
+                      </div>
                       <PhoneButtons phone={e.phone} clr={hospital.color} />
                     </div>
                   ))}
@@ -1037,7 +1090,7 @@ export default function App() {
           )}
         </div>
 
-        {/* Group Text */}
+        {/* Group Text — ESJH/MTWEM/GMH (single tech + RN per day) */}
         {[4,6,7].includes(selectedHospital) && (effectiveRole === "Technologist" || effectiveRole === "RN") && (() => {
           const te = getEntry(selectedHospital, "Technologist", selectedDay);
           const re = getEntry(selectedHospital, "RN", selectedDay);
@@ -1055,6 +1108,34 @@ export default function App() {
             </div>
           );
         })()}
+
+        {/* Group Text — EUH weekday (multiple RNs + Techs per day via entries) */}
+        {selectedHospital === 1 && !isWeekendDay
+          && (effectiveRole === "PrimaryRN" || effectiveRole === "PrimaryTech") && (() => {
+          const rnE   = getEntry(1, "PrimaryRN", selectedDay);
+          const techE = getEntry(1, "PrimaryTech", selectedDay);
+          const collect = (e) => {
+            const src = (e?.entries && e.entries.length) ? e.entries : (e ? [e] : []);
+            return src.map(x => (x.phone||"").replace(/[^0-9]/g,"")).filter(Boolean);
+          };
+          const nums = [...new Set([...collect(rnE), ...collect(techE)])];
+          if (!nums.length) return null;
+          const nameList = [];
+          if (rnE?.name && rnE.name !== "N/A") nameList.push(rnE.name);
+          if (techE?.name && techE.name !== "N/A") nameList.push(techE.name);
+          return (
+            <div style={{ marginBottom:"14px" }}>
+              <a href={`sms:${nums.join(",")}`} style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:"6px", padding:"12px", borderRadius:"10px", textDecoration:"none",
+                background:"linear-gradient(135deg, #3DA07A 0%, #2E8A6A 100%)", color:"#fff", fontWeight:700, fontSize:"13px",
+              }}>💬 Group Text IR Tech & RN</a>
+              <div style={{ fontSize:"10px", color:T.textMuted, textAlign:"center", marginTop:"4px" }}>
+                {nameList.join(" + ") || `${nums.length} on call`}
+              </div>
+            </div>
+          );
+        })()}
+
 
         {/* Full Week — hidden for hideWeek and static roles */}
         {showFullWeek && (
