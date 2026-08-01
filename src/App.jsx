@@ -6,7 +6,7 @@ import EditMode from "./Edit";
 // Set MAINTENANCE to true to take IROC offline and show the notice.
 // Set it back to false (and rebuild/push) to bring the app back.
 // ═══════════════════════════════════════════════════════════════
-const MAINTENANCE = true;
+const MAINTENANCE = false;
 const MAINTENANCE_MESSAGE = "IROC is temporarily paused. Please follow the on-call emails in the meantime.";
 
 const BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSz1MLm6ZSF1hSKaxr6bdDrO98npeCxLhrkaxcdsKytZgAIPE80wCs1o0ot5ATTPcjTuf3wRfgs1VVM/pub";
@@ -759,7 +759,7 @@ function MainApp() {
             </div>
 
             <div style={{ textAlign:"center", marginTop:"14px", fontSize:"9px", color:T.textMuted, letterSpacing:"1px" }}>
-              IROC v10.7.1
+              IROC v10.7.2
             </div>
 
             <div style={{ height:"30px" }} />
